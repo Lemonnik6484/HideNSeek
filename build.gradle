@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+}
+
+group = project.maven_group
+version = project.version
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "net.minestom:minestom:${project.minestom}"
+
+    implementation "org.slf4j:slf4j-api:${project.slf4j}"
+    implementation "org.slf4j:slf4j-simple:${project.slf4j}"
+}

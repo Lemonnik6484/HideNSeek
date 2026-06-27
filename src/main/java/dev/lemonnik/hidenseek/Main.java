@@ -1,15 +1,14 @@
 package dev.lemonnik.hidenseek;
 
 import dev.lemonnik.hidenseek.commands.Commands;
-import dev.lemonnik.hidenseek.utils.AdminsList;
-import dev.lemonnik.hidenseek.utils.OpsList;
+import dev.lemonnik.hidenseek.utils.PermsList;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
-import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
+import net.minestom.server.event.player.PlayerSettingsChangeEvent;
 import net.minestom.server.extras.lan.OpenToLAN;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
@@ -26,8 +25,7 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger("Server");
 
     static void main() {
-        AdminsList.load();
-        OpsList.load();
+        PermsList.load();
 
         MinecraftServer minecraftServer = MinecraftServer.init(new Auth.Online());
 
@@ -54,7 +52,7 @@ public class Main {
             final Player player = event.getPlayer();
             event.setSpawningInstance(instanceContainer);
             player.setRespawnPoint(new Pos(0, 0, 0));
-            player.setGameMode(GameMode.SPECTATOR);
+            player.setPermissionLevel(PermsList.getLevel(player.getUuid()));
         });
 
         int port = System.getProperty("port") != null ? Integer.parseInt(System.getProperty("port")) : 25565;

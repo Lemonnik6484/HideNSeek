@@ -11,10 +11,7 @@ public class Commands {
 
     static {
         commands.add(new StopCommand());
-        commands.add(new OpCommand());
-        commands.add(new DeOpCommand());
-        commands.add(new AdminCommand());
-        commands.add(new UnAdminCommand());
+        commands.add(new PermCommand());
     }
 
     public static void registerCommands() {

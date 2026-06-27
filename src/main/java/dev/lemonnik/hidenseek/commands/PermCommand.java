@@ -33,6 +33,7 @@ public class PermCommand extends Command {
 
             if (!(sender instanceof Player player)) {
                 target.setPermissionLevel(level);
+                sender.sendMessage("Set " + target.getUsername() + "'s permission level to " + level);
             } else {
                 if (player.getPermissionLevel() > level || player.getPermissionLevel() == 4) {
                     target.setPermissionLevel(level);

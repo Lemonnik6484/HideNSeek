@@ -8,7 +8,6 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
-import net.minestom.server.event.player.PlayerSettingsChangeEvent;
 import net.minestom.server.extras.lan.OpenToLAN;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
@@ -19,12 +18,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger("Server");
 
-    static void main() {
+    static void main(String[] args) {
         PermsList.load();
 
         MinecraftServer minecraftServer = MinecraftServer.init(new Auth.Online());
@@ -59,6 +59,19 @@ public class Main {
         String address = System.getProperty("address") != null ? System.getProperty("address") : "0.0.0.0";
 
         minecraftServer.start(address, port);
+
+        Thread consoleThread = new Thread(() -> {
+            Scanner scanner = new Scanner(System.in);
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine().trim();
+                if (line.isEmpty()) continue;
+
+                MinecraftServer.getCommandManager().execute(MinecraftServer.getCommandManager().getConsoleSender(), line);
+            }
+        }, "console-thread");
+
+        consoleThread.setDaemon(true);
+        consoleThread.start();
     }
 
     public static void info(String message) {

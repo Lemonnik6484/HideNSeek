@@ -1,7 +1,7 @@
 package dev.lemonnik.hidenseek;
 
-import dev.lemonnik.hidenseek.commands.Commands;
 import dev.lemonnik.hidenseek.utils.PermsList;
+import dev.lemonnik.hidenseek.utils.WorldManager;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
@@ -9,17 +9,10 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.extras.lan.OpenToLAN;
-import net.minestom.server.instance.InstanceContainer;
-import net.minestom.server.instance.InstanceManager;
-import net.minestom.server.instance.LightingChunk;
-import net.minestom.server.instance.anvil.AnvilLoader;
-import net.minestom.server.world.DimensionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Path;
 import java.util.Scanner;
-import java.util.concurrent.CompletableFuture;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger("Server");
@@ -33,24 +26,12 @@ public class Main {
 
         OpenToLAN.open();
 
-        InstanceManager instanceManager = MinecraftServer.getInstanceManager();
-        InstanceContainer instanceContainer = instanceManager.createInstanceContainer();
-
-        if (Path.of("worlds/Lobby").toFile().exists()) {
-            instanceContainer.setChunkLoader(new AnvilLoader(Path.of("worlds/Lobby"), DimensionType.OVERWORLD.key()));
-        } else {
-            info("Failed to load " + Path.of("worlds/Lobby").toFile().getAbsolutePath());
-        }
-
-        CompletableFuture.runAsync(() -> {
-            LightingChunk.relight(instanceContainer, instanceContainer.getChunks());
-            instanceContainer.saveChunksToStorage();
-        });
+        WorldManager.loadWorlds();
 
         GlobalEventHandler globalEventHandler = MinecraftServer.getGlobalEventHandler();
         globalEventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
             final Player player = event.getPlayer();
-            event.setSpawningInstance(instanceContainer);
+            event.setSpawningInstance(WorldManager.getSpawnWorld());
             player.setRespawnPoint(new Pos(0, 0, 0));
             player.setPermissionLevel(PermsList.getLevel(player.getUuid()));
         });

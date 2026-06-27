@@ -1,5 +1,8 @@
-package dev.lemonnik.hidenseek.commands;
+package dev.lemonnik.hidenseek;
 
+import dev.lemonnik.hidenseek.commands.PermCommand;
+import dev.lemonnik.hidenseek.commands.StopCommand;
+import dev.lemonnik.hidenseek.commands.WorldCommand;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.builder.Command;
 
@@ -12,6 +15,7 @@ public class Commands {
     static {
         commands.add(new StopCommand());
         commands.add(new PermCommand());
+        commands.add(new WorldCommand());
     }
 
     public static void registerCommands() {

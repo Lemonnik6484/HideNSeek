@@ -8,6 +8,7 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
+import net.minestom.server.event.player.PlayerGameModeRequestEvent;
 import net.minestom.server.extras.lan.OpenToLAN;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,13 @@ public class Main {
             event.setSpawningInstance(WorldManager.getSpawnWorld());
             player.setRespawnPoint(new Pos(0, 0, 0));
             player.setPermissionLevel(PermsList.getLevel(player.getUuid()));
+        });
+
+        globalEventHandler.addListener(PlayerGameModeRequestEvent.class, event -> {
+            final Player player = event.getPlayer();
+            if (player.getPermissionLevel() >= 3) {
+                player.setGameMode(event.getRequestedGameMode());
+            }
         });
 
         int port = System.getProperty("port") != null ? Integer.parseInt(System.getProperty("port")) : 25565;

@@ -33,6 +33,7 @@ public class PermCommand extends Command {
 
             if (!(sender instanceof Player player)) {
                 target.setPermissionLevel(level);
+                PermsList.set(target);
                 sender.sendMessage("Set " + target.getUsername() + "'s permission level to " + level);
             } else {
                 if (player.getPermissionLevel() > level || player.getPermissionLevel() == 4) {
@@ -43,8 +44,6 @@ public class PermCommand extends Command {
                     sender.sendMessage("You do not have permission to do this");
                 }
             }
-
-            sender.sendMessage("Added " + target.getUsername() + " to admin list");
         }, playerArgument, levelArgument);
     }
 }

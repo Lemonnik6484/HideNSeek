@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class PermsList {
-    private static List<PermLevelPlayer> list = new ArrayList<>();
+    private static ArrayList<PermLevelPlayer> list = new ArrayList<>();
     private static final String file = "permissions.csv";
 
     public static void set(PermLevelPlayer player) {
@@ -65,7 +65,8 @@ public class PermsList {
                 ));
             }
 
-            list = loaded.stream().toList();
+            list.clear();
+            list.addAll(loaded);
         } catch (IOException e) {
             Main.warn("Failed to load list list: " + e.getMessage());
         }

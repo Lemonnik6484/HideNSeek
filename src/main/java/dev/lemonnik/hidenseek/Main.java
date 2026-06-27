@@ -2,6 +2,7 @@ package dev.lemonnik.hidenseek;
 
 import dev.lemonnik.hidenseek.commands.Commands;
 import dev.lemonnik.hidenseek.utils.AdminsList;
+import dev.lemonnik.hidenseek.utils.OpsList;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
@@ -24,11 +25,9 @@ import java.util.concurrent.CompletableFuture;
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger("Server");
 
-    static void main(String[] args) {
-        System.setProperty("minestom.chunk-view-distance", "16");
-        System.setProperty("minestom.entity-view-distance", "16");
-
+    static void main() {
         AdminsList.load();
+        OpsList.load();
 
         MinecraftServer minecraftServer = MinecraftServer.init(new Auth.Online());
 
@@ -56,38 +55,10 @@ public class Main {
             event.setSpawningInstance(instanceContainer);
             player.setRespawnPoint(new Pos(0, 0, 0));
             player.setGameMode(GameMode.SPECTATOR);
-
-            int spawnChunkX = 0;
-            int spawnChunkZ = 0;
-            for (int x = spawnChunkX - 2; x <= spawnChunkX + 2; x++) {
-                for (int z = spawnChunkZ - 2; z <= spawnChunkZ + 2; z++) {
-                    instanceContainer.loadChunk(x, z);
-                }
-            }
         });
 
-        int port = 25565;
-        String address = "0.0.0.0";
-
-        for (String arg : args) {
-            if (arg.startsWith("--port=")) {
-                try {
-                    port = Integer.parseInt(arg.substring("--port=".length()));
-                    continue;
-                } catch (NumberFormatException e) {
-                    System.err.println("Invalid port: " + arg);
-                    System.exit(1);
-                }
-            }
-            if (arg.startsWith("--address=")) {
-                try {
-                    address = arg.substring("--address=".length()).trim();
-                } catch (IllegalArgumentException e) {
-                    System.err.println("Invalid address: " + arg);
-                    System.exit(1);
-                }
-            }
-        }
+        int port = System.getProperty("port") != null ? Integer.parseInt(System.getProperty("port")) : 25565;
+        String address = System.getProperty("address") != null ? System.getProperty("address") : "0.0.0.0";
 
         minecraftServer.start(address, port);
     }

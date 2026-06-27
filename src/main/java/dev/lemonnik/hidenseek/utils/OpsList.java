@@ -9,26 +9,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class AdminsList {
-    private static List<UUID> admins = new ArrayList<>();
-    private static final String file = "admins.txt";
+public class OpsList {
+    private static List<UUID> ops = new ArrayList<>();
+    private static final String file = "ops.txt";
 
     public static void add(UUID uuid) {
-        admins.add(uuid);
+        ops.add(uuid);
+        AdminsList.add(uuid);
         save();
     }
 
     public static void remove(UUID uuid) {
-        admins.remove(uuid);
+        ops.remove(uuid);
+        AdminsList.remove(uuid);
         save();
     }
 
     public static List<UUID> getAll() {
-        return admins;
+        return ops;
     }
 
     public static boolean is(UUID uuid) {
-        return admins.contains(uuid);
+        return ops.contains(uuid);
     }
 
     public static void load() {
@@ -41,9 +43,9 @@ public class AdminsList {
                 loaded.add(UUID.fromString(line));
             }
 
-            admins = loaded.stream().toList();
+            ops = loaded.stream().toList();
         } catch (IOException e) {
-            Main.warn("Failed to load admins list: " + e.getMessage());
+            Main.warn("Failed to load ops list: " + e.getMessage());
         }
     }
 
@@ -53,12 +55,12 @@ public class AdminsList {
         try {
             Files.write(
                     Path.of(file),
-                    admins.stream()
+                    ops.stream()
                             .map(UUID::toString)
                             .toList()
             );
         } catch (IOException e) {
-            Main.warn("Failed to save admins list: " + e.getMessage());
+            Main.warn("Failed to save ops list: " + e.getMessage());
         }
     }
 }

@@ -1,6 +1,7 @@
 package dev.lemonnik.hidenseek.commands;
 
 import dev.lemonnik.hidenseek.utils.AdminsList;
+import dev.lemonnik.hidenseek.utils.OpsList;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.command.builder.arguments.minecraft.ArgumentEntity;
@@ -17,7 +18,7 @@ public class AdminCommand extends Command {
         ArgumentEntity playerArgument = ArgumentType.Entity("player").onlyPlayers(true).singleEntity(true);
 
         addSyntax((sender, context) -> {
-            if (!AdminsList.isAdmin(sender.identity().uuid())) return;
+            if (!OpsList.is(sender.identity().uuid())) return;
 
             EntityFinder finder = context.get(playerArgument);
             List<Entity> entities = finder.find(sender);
@@ -28,8 +29,8 @@ public class AdminCommand extends Command {
             }
 
             Player target = (Player) entities.getFirst();
-            AdminsList.removeAdmin(target.getUuid());
-            sender.sendMessage("Removed " + target.getUsername() + " from admin list");
+            AdminsList.add(target.getUuid());
+            sender.sendMessage("Added " + target.getUsername() + " to admin list");
         }, playerArgument);
     }
 }

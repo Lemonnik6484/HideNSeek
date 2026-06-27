@@ -9,7 +9,7 @@ public class StopCommand extends Command {
         super("stop");
 
         setDefaultExecutor((sender, commandContext) -> {
-            if (AdminsList.isAdmin(sender.identity().uuid())) {
+            if (AdminsList.is(sender.identity().uuid())) {
                 MinecraftServer.getSchedulerManager().scheduleEndOfTick(MinecraftServer::stopCleanly);
             }
         });

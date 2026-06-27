@@ -1,6 +1,5 @@
 package dev.lemonnik.hidenseek.commands;
 
-import dev.lemonnik.hidenseek.utils.AdminsList;
 import dev.lemonnik.hidenseek.utils.OpsList;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
@@ -11,9 +10,9 @@ import net.minestom.server.utils.entity.EntityFinder;
 
 import java.util.List;
 
-public class UnAdminCommand extends Command {
-    public UnAdminCommand() {
-        super("unadmin");
+public class OpCommand extends Command {
+    public OpCommand() {
+        super("op");
 
         ArgumentEntity playerArgument = ArgumentType.Entity("player").onlyPlayers(true).singleEntity(true);
 
@@ -29,8 +28,8 @@ public class UnAdminCommand extends Command {
             }
 
             Player target = (Player) entities.getFirst();
-            AdminsList.remove(target.getUuid());
-            sender.sendMessage("Removed " + target.getUsername() + " from admin list");
+            OpsList.remove(target.getUuid());
+            sender.sendMessage("Removed " + target.getUsername() + " from ops list");
         }, playerArgument);
     }
 }

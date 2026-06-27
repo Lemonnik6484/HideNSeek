@@ -1,50 +1,69 @@
-package dev.lemonnik;
+package dev.lemonnik.hidenseek;
 
+import dev.lemonnik.hidenseek.commands.Commands;
+import dev.lemonnik.hidenseek.utils.AdminsList;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.coordinate.ChunkRange;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
-import net.minestom.server.instance.Chunk;
+import net.minestom.server.extras.lan.OpenToLAN;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.LightingChunk;
-import net.minestom.server.instance.block.Block;
+import net.minestom.server.instance.anvil.AnvilLoader;
+import net.minestom.server.world.DimensionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger("Server");
 
     static void main(String[] args) {
+        System.setProperty("minestom.chunk-view-distance", "16");
+        System.setProperty("minestom.entity-view-distance", "16");
+
+        AdminsList.load();
+
         MinecraftServer minecraftServer = MinecraftServer.init(new Auth.Online());
+
+        Commands.registerCommands();
+
+        OpenToLAN.open();
 
         InstanceManager instanceManager = MinecraftServer.getInstanceManager();
         InstanceContainer instanceContainer = instanceManager.createInstanceContainer();
 
-        instanceContainer.setGenerator(unit -> unit.modifier().fillHeight(0, 40, Block.GRASS_BLOCK));
-        instanceContainer.setChunkSupplier(LightingChunk::new);
+        if (Path.of("worlds/Lobby").toFile().exists()) {
+            instanceContainer.setChunkLoader(new AnvilLoader(Path.of("worlds/Lobby"), DimensionType.OVERWORLD.key()));
+        } else {
+            info("Failed to load " + Path.of("worlds/Lobby").toFile().getAbsolutePath());
+        }
+
+        CompletableFuture.runAsync(() -> {
+            LightingChunk.relight(instanceContainer, instanceContainer.getChunks());
+            instanceContainer.saveChunksToStorage();
+        });
 
         GlobalEventHandler globalEventHandler = MinecraftServer.getGlobalEventHandler();
         globalEventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
             final Player player = event.getPlayer();
             event.setSpawningInstance(instanceContainer);
-            player.setRespawnPoint(new Pos(0, 42, 0));
-        });
+            player.setRespawnPoint(new Pos(0, 0, 0));
+            player.setGameMode(GameMode.SPECTATOR);
 
-        var chunks = new ArrayList<CompletableFuture<Chunk>>();
-        ChunkRange.chunksInRange(0, 0, 32, (x, z) -> chunks.add(instanceContainer.loadChunk(x, z)));
-
-        CompletableFuture.runAsync(() -> {
-            CompletableFuture.allOf(chunks.toArray(CompletableFuture[]::new)).join();
-            System.out.println("load end");
-            LightingChunk.relight(instanceContainer, instanceContainer.getChunks());
-            System.out.println("light end");
+            int spawnChunkX = 0;
+            int spawnChunkZ = 0;
+            for (int x = spawnChunkX - 2; x <= spawnChunkX + 2; x++) {
+                for (int z = spawnChunkZ - 2; z <= spawnChunkZ + 2; z++) {
+                    instanceContainer.loadChunk(x, z);
+                }
+            }
         });
 
         int port = 25565;

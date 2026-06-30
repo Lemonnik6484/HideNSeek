@@ -69,7 +69,7 @@ public class SessionManager {
                         if (ticksPassed >= hidingDuration) {
                             state = State.GAME;
                             ticksPassed = 0;
-                            releaseSeekers();
+                            teleportToWorld(seekers);
                         }
                         break;
                     case GAME:
@@ -145,26 +145,14 @@ public class SessionManager {
             Main.info("  - " + player.getUsername());
         }
 
-        for (Player player : hiders) {
-            player.setInstance(currentWorld.world());
-            Pos pos = WorldManager.getWorldSpawn(currentWorld.id());
-            if (pos != null) {
-                player.teleport(pos);
-            } else {
-                throw new RuntimeException("Failed to teleport to world");
-            }
-        }
+        teleportToWorld(hiders);
     }
 
-    private static void releaseSeekers() {
-        for (Player player : seekers) {
+    private static void teleportToWorld(List<Player> group) {
+        for (Player player : group) {
             player.setInstance(currentWorld.world());
             Pos pos = WorldManager.getWorldSpawn(currentWorld.id());
-            if (pos != null) {
-                player.teleport(pos);
-            } else {
-                throw new RuntimeException("Failed to teleport to world");
-            }
+            if (pos != null) player.teleport(pos);
         }
     }
 
@@ -173,13 +161,7 @@ public class SessionManager {
             World spawnWorld = WorldManager.getSpawnWorld();
             player.setInstance(spawnWorld.world());
             Pos pos = WorldManager.getWorldSpawn(spawnWorld.id());
-            if (pos != null) {
-                MinecraftServer.getSchedulerManager().scheduleNextTick(() -> {
-                    player.teleport(pos);
-                });
-            } else {
-                throw new RuntimeException("Failed to teleport to world");
-            }
+            if (pos != null) player.teleport(pos);
             hiders.clear();
             seekers.clear();
             state = State.IDLE;

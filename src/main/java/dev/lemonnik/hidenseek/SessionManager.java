@@ -52,7 +52,7 @@ public class SessionManager {
                         ticksPassed++;
                         secondsLeft = (intermissionDuration - ticksPassed) / 20;
                         BOSS_BAR.name(Component.text("Intermission: " + secondsLeft + "s left"));
-                        BOSS_BAR.progress((float) ticksPassed / intermissionDuration);
+                        setBossBarProgress((float) ticksPassed / intermissionDuration);
                         BOSS_BAR.color(BossBar.Color.GREEN);
                         if (ticksPassed >= intermissionDuration) {
                             state = State.HIDING;
@@ -64,7 +64,7 @@ public class SessionManager {
                         ticksPassed++;
                         secondsLeft = (hidingDuration - ticksPassed) / 20;
                         BOSS_BAR.name(Component.text("Hiding: " + secondsLeft + "s left"));
-                        BOSS_BAR.progress((float) ticksPassed / hidingDuration);
+                        setBossBarProgress((float) ticksPassed / hidingDuration);
                         BOSS_BAR.color(BossBar.Color.YELLOW);
                         if (ticksPassed >= hidingDuration) {
                             state = State.GAME;
@@ -76,7 +76,7 @@ public class SessionManager {
                         ticksPassed++;
                         secondsLeft = (gameDuration - ticksPassed) / 20;
                         BOSS_BAR.name(Component.text("Game: " + secondsLeft+ "s left"));
-                        BOSS_BAR.progress((float) ticksPassed / gameDuration);
+                        setBossBarProgress((float) ticksPassed / gameDuration);
                         BOSS_BAR.color(BossBar.Color.RED);
                         if (ticksPassed >= gameDuration) {
                             state = State.INTERMISSION;
@@ -107,7 +107,12 @@ public class SessionManager {
             ticksPassed = 0;
             hiders.clear();
             seekers.clear();
+            stopGame();
         }
+    }
+
+    private static void setBossBarProgress(float progress) {
+        BOSS_BAR.progress(Math.clamp(0, progress, 1));
     }
 
     private static void initGame() {
@@ -144,9 +149,7 @@ public class SessionManager {
             player.setInstance(currentWorld.world());
             Pos pos = WorldManager.getWorldSpawn(currentWorld.id());
             if (pos != null) {
-                MinecraftServer.getSchedulerManager().scheduleNextTick(() -> {
-                    player.teleport(pos);
-                });
+                player.teleport(pos);
             } else {
                 throw new RuntimeException("Failed to teleport to world");
             }
@@ -158,9 +161,7 @@ public class SessionManager {
             player.setInstance(currentWorld.world());
             Pos pos = WorldManager.getWorldSpawn(currentWorld.id());
             if (pos != null) {
-                MinecraftServer.getSchedulerManager().scheduleNextTick(() -> {
-                    player.teleport(pos);
-                });
+                player.teleport(pos);
             } else {
                 throw new RuntimeException("Failed to teleport to world");
             }
@@ -169,7 +170,16 @@ public class SessionManager {
 
     private static void stopGame() {
         for (Player player : MinecraftServer.getConnectionManager().getOnlinePlayers()) {
-            player.setInstance(WorldManager.getSpawnWorld().world());
+            World spawnWorld = WorldManager.getSpawnWorld();
+            player.setInstance(spawnWorld.world());
+            Pos pos = WorldManager.getWorldSpawn(spawnWorld.id());
+            if (pos != null) {
+                MinecraftServer.getSchedulerManager().scheduleNextTick(() -> {
+                    player.teleport(pos);
+                });
+            } else {
+                throw new RuntimeException("Failed to teleport to world");
+            }
             hiders.clear();
             seekers.clear();
             state = State.IDLE;

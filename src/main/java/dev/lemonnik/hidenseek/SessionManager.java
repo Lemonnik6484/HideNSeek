@@ -7,6 +7,8 @@ import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
+import net.minestom.server.potion.Potion;
+import net.minestom.server.potion.PotionEffect;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
@@ -143,6 +145,7 @@ public class SessionManager {
         Main.info("Seekers: ");
         for (Player player : seekers) {
             Main.info("  - " + player.getUsername());
+            player.addEffect(new Potion(PotionEffect.GLOWING, 1, Integer.MAX_VALUE));
         }
 
         teleportToWorld(hiders, currentWorld);
@@ -161,6 +164,9 @@ public class SessionManager {
         World spawnWorld = WorldManager.getSpawnWorld();
         teleportToWorld(MinecraftServer.getConnectionManager().getOnlinePlayers().stream().toList(), spawnWorld);
         hiders.clear();
+        for (Player player : seekers) {
+            player.clearEffects();
+        }
         seekers.clear();
         state = State.IDLE;
     }

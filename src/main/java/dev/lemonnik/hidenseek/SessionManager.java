@@ -4,6 +4,7 @@ import dev.lemonnik.hidenseek.utils.World;
 import dev.lemonnik.hidenseek.utils.WorldManager;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
@@ -149,12 +150,13 @@ public class SessionManager {
         }
 
         teleportToWorld(hiders, currentWorld);
-        Team hiddenNametagsTeam = new TeamManager()
+        Team globalTeam = new TeamManager()
                 .createBuilder("hiddenNametags")
+                .teamColor(NamedTextColor.RED)
                 .nameTagVisibility(TeamsPacket.NameTagVisibility.NEVER)
                 .build();
         for (Player player : players) {
-            player.setTeam(hiddenNametagsTeam);
+            player.setTeam(globalTeam);
         }
     }
 

@@ -17,14 +17,8 @@ public class SQLManager {
     }
 
     public static void init() throws SQLException {
-        connection.prepareStatement(QueryBuilder.createTable("users", List.of(
-                SQLRow.primaryAutoIncrement("systemId"),
-                SQLRow.simple("username", SQLRow.Type.TEXT),
-                SQLRow.unique("uuid", SQLRow.Type.TEXT)
-        ))).execute();
-
         connection.prepareStatement(QueryBuilder.createTable("permissions", List.of(
-                SQLRow.primary("userId", SQLRow.Type.INTEGER),
+                SQLRow.primary("uuid", SQLRow.Type.TEXT),
                 SQLRow.simple("permissionLevel", SQLRow.Type.INTEGER)
         ))).execute();
     }

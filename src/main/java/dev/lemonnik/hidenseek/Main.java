@@ -67,7 +67,7 @@ public class Main {
             }
         });
 
-        int port = System.getProperty("port") != null ? Integer.parseInt(System.getProperty("port")) : 25575;
+        int port = System.getProperty("port") != null ? Integer.parseInt(System.getProperty("port")) : 25565;
         String address = System.getProperty("address") != null ? System.getProperty("address") : "0.0.0.0";
 
         minecraftServer.start(address, port);

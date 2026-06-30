@@ -71,6 +71,7 @@ public class Main {
         String address = System.getProperty("address") != null ? System.getProperty("address") : "0.0.0.0";
 
         minecraftServer.start(address, port);
+        info("Server started on " + address + ":" + port);
 
         Thread consoleThread = new Thread(() -> {
             Scanner scanner = new Scanner(System.in);

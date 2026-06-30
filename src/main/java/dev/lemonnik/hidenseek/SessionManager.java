@@ -93,7 +93,9 @@ public class SessionManager {
 
     public static void onPlayerLeave(Player player) {
         if (MinecraftServer.getConnectionManager().getOnlinePlayerCount() < 2 || hiders.isEmpty() || seekers.isEmpty()) {
-            task.cancel();
+            if (task != null) {
+                task.cancel();
+            }
             state = State.IDLE;
             BOSS_BAR.color(BossBar.Color.BLUE);
             BOSS_BAR.progress(1);

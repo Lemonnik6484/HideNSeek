@@ -9,6 +9,7 @@ import net.hollowcube.polar.PolarWriter;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
+import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.LightingChunk;
@@ -91,11 +92,18 @@ public class WorldManager {
         Main.info("Set spawn world to " + spawnWorldId);
     }
 
+    public static @Nullable World getWorld(Instance instance) {
+        return worlds.stream().filter(world -> world.world()
+                .equals(instance))
+                .findFirst()
+                .orElse(null);
+    }
+
     private static String fixId(String id) {
         return id.trim().toLowerCase().replace(" ", "_");
     }
 
-    public static void setWorldSpawn(String id, Vec spawn) {
+    public static void setWorldSpawn(String id, Pos spawn) {
         BadPractices.yum(() -> SQLManager.insertOrUpdate("spawns", List.of(
                 SQLManager.ROW_WORLD_ID,
                 SQLManager.ROW_X,

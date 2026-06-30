@@ -52,7 +52,7 @@ public class SessionManager {
                         ticksPassed++;
                         secondsLeft = (intermissionDuration - ticksPassed) / 20;
                         BOSS_BAR.name(Component.text("Intermission: " + secondsLeft + "s left"));
-                        BOSS_BAR.progress((float) intermissionDuration / ticksPassed);
+                        BOSS_BAR.progress((float) ticksPassed / intermissionDuration);
                         BOSS_BAR.color(BossBar.Color.GREEN);
                         if (ticksPassed >= intermissionDuration) {
                             state = State.HIDING;
@@ -64,7 +64,7 @@ public class SessionManager {
                         ticksPassed++;
                         secondsLeft = (hidingDuration - ticksPassed) / 20;
                         BOSS_BAR.name(Component.text("Hiding: " + secondsLeft + "s left"));
-                        BOSS_BAR.progress((float) hidingDuration / ticksPassed);
+                        BOSS_BAR.progress((float) ticksPassed / hidingDuration);
                         BOSS_BAR.color(BossBar.Color.YELLOW);
                         if (ticksPassed >= hidingDuration) {
                             state = State.GAME;
@@ -76,7 +76,7 @@ public class SessionManager {
                         ticksPassed++;
                         secondsLeft = (gameDuration - ticksPassed) / 20;
                         BOSS_BAR.name(Component.text("Game: " + secondsLeft+ "s left"));
-                        BOSS_BAR.progress((float) gameDuration / ticksPassed);
+                        BOSS_BAR.progress((float) ticksPassed / gameDuration);
                         BOSS_BAR.color(BossBar.Color.RED);
                         if (ticksPassed >= gameDuration) {
                             state = State.INTERMISSION;

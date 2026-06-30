@@ -3,10 +3,12 @@ package dev.lemonnik.hidenseek;
 import dev.lemonnik.hidenseek.sql.SQLManager;
 import dev.lemonnik.hidenseek.utils.BadPractices;
 import dev.lemonnik.hidenseek.utils.PermsList;
+import dev.lemonnik.hidenseek.utils.World;
 import dev.lemonnik.hidenseek.utils.WorldManager;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
@@ -33,11 +35,19 @@ public class Main {
 
         WorldManager.loadWorlds();
 
+        World spawnWorld = WorldManager.getSpawnWorld();
+        Pos spawnPos = WorldManager.getWorldSpawn(spawnWorld.id());
+        if (spawnPos == null) {
+            spawnPos = Pos.ZERO;
+        }
+
         GlobalEventHandler globalEventHandler = MinecraftServer.getGlobalEventHandler();
+        Pos finalSpawnPos = spawnPos;
         globalEventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
-            final Player player = event.getPlayer();
-            event.setSpawningInstance(WorldManager.getSpawnWorld().world());
-            player.setRespawnPoint(new Pos(0, 0, 0));
+            Player player = event.getPlayer();
+            event.setSpawningInstance(spawnWorld.world());
+            player.setRespawnPoint(finalSpawnPos);
+            player.setGameMode(GameMode.ADVENTURE);
             player.setPermissionLevel(PermsList.getLevel(player.getUuid()));
         });
 
@@ -57,7 +67,7 @@ public class Main {
             }
         });
 
-        int port = System.getProperty("port") != null ? Integer.parseInt(System.getProperty("port")) : 25565;
+        int port = System.getProperty("port") != null ? Integer.parseInt(System.getProperty("port")) : 25575;
         String address = System.getProperty("address") != null ? System.getProperty("address") : "0.0.0.0";
 
         minecraftServer.start(address, port);

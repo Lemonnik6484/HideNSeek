@@ -59,7 +59,7 @@ public class WorldManager {
                         Files.write(Path.of("worlds/" + file.getName() + ".polar"), polarWorldBytes);
                         type = WorldType.POLAR;
                     } catch (IOException e) {
-                        Main.error(String.format("Failed to convert %s to .polar. Reason: %s\nFalling back to Anvil!", file.getName(), e.getMessage()));
+                        Main.warn(String.format("Failed to convert %s to .polar. Reason: %s. Falling back to Anvil!", file.getName(), e.getMessage()));
                         instanceContainer.setChunkLoader(new AnvilLoader(path, DimensionType.OVERWORLD.key()));
                         break;
                     }

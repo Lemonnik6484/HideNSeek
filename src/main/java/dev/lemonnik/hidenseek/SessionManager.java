@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.potion.Potion;
 import net.minestom.server.potion.PotionEffect;
@@ -35,6 +36,7 @@ public class SessionManager {
 
     private static final ArrayList<Player> hiders = new ArrayList<>();
     private static final ArrayList<Player> seekers = new ArrayList<>();
+    private static final ArrayList<Player> spectators = new ArrayList<>();
 
     private static World currentWorld;
 
@@ -47,8 +49,19 @@ public class SessionManager {
         GAME
     }
 
+    public enum PlayerState {
+        HIDER,
+        SEEKER,
+        SPECTATOR
+    }
+
     public static void onPlayerJoin(Player player) {
         player.showBossBar(BOSS_BAR);
+        if (state != State.INTERMISSION && state != State.IDLE) {
+            addToSpectator(player);
+            teleportToWorld(player, currentWorld);
+        }
+
         if (MinecraftServer.getConnectionManager().getOnlinePlayerCount() > 1 && state == State.IDLE) {
             state = State.INTERMISSION;
             task = scheduler.submitTask(() -> {
@@ -98,7 +111,15 @@ public class SessionManager {
     }
 
     public static void skipIntermission() {
-        ticksPassed = intermissionDuration - 1;
+        if (state == State.INTERMISSION) {
+            ticksPassed = intermissionDuration - 1;
+        }
+    }
+
+    private static void addToSpectator(Player player) {
+        spectators.add(player);
+        player.setGameMode(GameMode.SPECTATOR);
+        player.addEffect(new Potion(PotionEffect.INVISIBILITY, 1, Integer.MAX_VALUE));
     }
 
     public static void onPlayerLeave(Player player) {
@@ -110,9 +131,6 @@ public class SessionManager {
             BOSS_BAR.color(BossBar.Color.BLUE);
             BOSS_BAR.progress(1);
             BOSS_BAR.name(Component.text("Waiting for players: 2+"));
-            ticksPassed = 0;
-            hiders.clear();
-            seekers.clear();
             stopGame();
         }
     }
@@ -165,21 +183,36 @@ public class SessionManager {
 
     private static void teleportToWorld(List<Player> group, World world) {
         for (Player player : group) {
-            player.setInstance(world.world()).thenRun(() -> {
-                Pos pos = WorldManager.getWorldSpawn(world.id());
-                if (pos != null) player.teleport(pos);
-            });
+            teleportToWorld(player, world);
         }
+    }
+
+    private static void teleportToWorld(Player player, World world) {
+        player.setInstance(world.world()).thenRun(() -> {
+            Pos pos = WorldManager.getWorldSpawn(world.id());
+            if (pos != null) player.teleport(pos);
+        });
     }
 
     private static void stopGame() {
         World spawnWorld = WorldManager.getSpawnWorld();
         teleportToWorld(MinecraftServer.getConnectionManager().getOnlinePlayers().stream().toList(), spawnWorld);
         hiders.clear();
-        for (Player player : seekers) {
+        for (Player player : MinecraftServer.getConnectionManager().getOnlinePlayers()) {
             player.clearEffects();
+            player.setGameMode(GameMode.ADVENTURE);
         }
+        ticksPassed = 0;
         seekers.clear();
+        spectators.clear();
         state = State.IDLE;
+    }
+
+    private static boolean is(PlayerState state, Player player) {
+        return switch (state) {
+            case HIDER -> hiders.contains(player);
+            case SEEKER -> seekers.contains(player);
+            case SPECTATOR -> spectators.contains(player);
+        };
     }
 }

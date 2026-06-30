@@ -4,11 +4,12 @@ import dev.lemonnik.hidenseek.utils.World;
 import dev.lemonnik.hidenseek.utils.WorldManager;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
+import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.potion.Potion;
 import net.minestom.server.potion.PotionEffect;
 import net.minestom.server.network.packet.server.play.TeamsPacket;
@@ -60,6 +61,17 @@ public class SessionManager {
         SPECTATOR
     }
 
+    public static void init() {
+        MinecraftServer.getGlobalEventHandler().addListener(EntityAttackEvent .class, event -> {
+            if (event.getEntity() instanceof Player player && event.getTarget() instanceof Player playerTarget) {
+                if (SessionManager.is(SessionManager.PlayerState.SEEKER, player) && SessionManager.is(SessionManager.PlayerState.HIDER, playerTarget)) {
+                    hiders.remove(playerTarget);
+                    addToSpectator(playerTarget);
+                }
+            }
+        });
+    }
+
     public static void onPlayerJoin(Player player) {
         player.showBossBar(BOSS_BAR);
         if (state != State.INTERMISSION && state != State.IDLE) {
@@ -103,6 +115,11 @@ public class SessionManager {
                         setBossBarProgress((float) ticksPassed / gameDuration);
                         BOSS_BAR.color(BossBar.Color.RED);
                         if (ticksPassed >= gameDuration) {
+                            if (!hiders.isEmpty()) {
+                                showTitle(Title.title(Component.text("Hiders win!"), Component.empty()));
+                            } else {
+                                showTitle(Title.title(Component.text("Seekers win!"), Component.empty()));
+                            }
                             state = State.INTERMISSION;
                             ticksPassed = 0;
                             stopGame();
@@ -118,6 +135,12 @@ public class SessionManager {
     public static void skipIntermission() {
         if (state == State.INTERMISSION) {
             ticksPassed = intermissionDuration - 1;
+        }
+    }
+
+    private static void showTitle(Title title) {
+        for (Player player : MinecraftServer.getConnectionManager().getOnlinePlayers()) {
+            player.showTitle(title);
         }
     }
 

@@ -32,6 +32,8 @@ public class Main {
 
         WorldManager.loadWorlds();
 
+        SessionManager.init();
+
         World spawnWorld = WorldManager.getSpawnWorld();
         Pos spawnPos = WorldManager.getWorldSpawn(spawnWorld.id());
         if (spawnPos == null) {

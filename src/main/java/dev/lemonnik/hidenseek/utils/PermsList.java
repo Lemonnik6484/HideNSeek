@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class PermsList {
-    private static ArrayList<PermLevelPlayer> list = new ArrayList<>();
+    private static final ArrayList<PermLevelPlayer> list = new ArrayList<>();
     private static final String file = "permissions.csv";
 
     public static void set(PermLevelPlayer player) {

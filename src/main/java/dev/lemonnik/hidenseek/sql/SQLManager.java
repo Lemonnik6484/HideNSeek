@@ -25,4 +25,30 @@ public class SQLManager {
                 List.of(ROW_UUID, ROW_PERMISSION_LEVEL)
         )).execute();
     }
+
+    public static void insertOrUpdate(String table, List<SQLRow> keys, List<Object> values) throws SQLException {
+        var update = SQLManager.conn.prepareStatement(QueryBuilder.update(table, keys, null));
+        fillStatement(update, values);
+
+        var linesUpdated = update.executeUpdate();
+        if (linesUpdated == 0) {
+            var insert = SQLManager.conn.prepareStatement(QueryBuilder.insert(table, keys));
+            fillStatement(insert, values);
+            insert.execute();
+        }
+    }
+
+    public static void fillStatement(PreparedStatement statement, List<Object> values) throws SQLException {
+        for (int i = 0; i < values.size(); i++) {
+            Object o = values.get(i);
+
+            switch (o) {
+                case Integer cast -> statement.setInt(i + 1, cast);
+                case Double cast -> statement.setDouble(i + 1, cast);
+                case String cast -> statement.setString(i + 1, cast);
+                case Boolean cast -> statement.setBoolean(i + 1, cast);
+                case null, default -> throw new RuntimeException("what is this thing \"%s\"".formatted(o));
+            }
+        }
+    }
 }

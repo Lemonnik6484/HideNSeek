@@ -1,92 +1,66 @@
 package dev.lemonnik.hidenseek.utils;
 
-import dev.lemonnik.hidenseek.Main;
+import dev.lemonnik.hidenseek.sql.QueryBuilder;
+import dev.lemonnik.hidenseek.sql.SQLManager;
 import net.minestom.server.entity.Player;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.List;
 import java.util.UUID;
 
 public class PermsList {
-    private static final ArrayList<PermLevelPlayer> list = new ArrayList<>();
-    private static final String file = "permissions.csv";
-
-    public static void set(PermLevelPlayer player) {
-        if (player.level != 0 && !list.contains(player)) {
-            add(player);
-        } else if (player.level == 0 && list.contains(player)) {
-            remove(player);
-        }
-    }
-
     public static void set(Player player) {
-        set(new PermLevelPlayer(
-                player.getUsername(),
-                player.getUuid(),
-                player.getPermissionLevel()
-        ));
+        set(player.getUuid(), player.getPermissionLevel());
     }
 
-    private static void add(PermLevelPlayer player) {
-        list.add(player);
-        save();
-    }
+    public static void set(UUID uuid, int permissionLevel) {
+        try {
+            var update = SQLManager.conn.prepareStatement(QueryBuilder.update(
+                    "permissions",
+                    List.of(SQLManager.ROW_PERMISSION_LEVEL),
+                    List.of(SQLManager.ROW_UUID)
+            ));
 
-    private static void remove(PermLevelPlayer player) {
-        list.remove(player);
-        save();
+            update.setInt(1, permissionLevel);
+            update.setString(2, uuid.toString());
+
+            int rowsUpdated = update.executeUpdate();
+
+            if (rowsUpdated == 0) {
+                String insertSql = QueryBuilder.insert(
+                        "permissions",
+                        List.of(SQLManager.ROW_UUID, SQLManager.ROW_PERMISSION_LEVEL)
+                );
+
+                PreparedStatement insert = SQLManager.conn.prepareStatement(insertSql);
+                insert.setString(1, uuid.toString());
+                insert.setInt(2, permissionLevel);
+                insert.execute();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static int getLevel(UUID uuid) {
-        for (PermLevelPlayer player : list) {
-            if (player.uuid.equals(uuid)) {
-                return player.level;
-            }
-        }
-        return 0;
-    }
-
-    public static void load() {
-        FileUtils.checkFile(file);
-
         try {
-            List<PermLevelPlayer> loaded = new ArrayList<>();
+            String sql = QueryBuilder.select(
+                    "permissions",
+                    List.of(SQLManager.ROW_PERMISSION_LEVEL),
+                    List.of(SQLManager.ROW_UUID)
+            );
 
-            for (String line : Files.readAllLines(Path.of(file))) {
-                String[] split = line.split(",");
+            PreparedStatement statement = SQLManager.conn.prepareStatement(sql);
+            statement.setString(1, uuid.toString());
 
-                loaded.add(new PermLevelPlayer(
-                        split[0],
-                        UUID.fromString(split[1]),
-                        Integer.parseInt(split[2])
-                ));
-            }
+            ResultSet result = statement.executeQuery();
 
-            list.clear();
-            list.addAll(loaded);
-        } catch (IOException e) {
-            Main.warn("Failed to load list list: " + e.getMessage());
+            if (!result.next()) return 0;
+
+            return result.getInt(SQLManager.ROW_PERMISSION_LEVEL.name());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
-
-    public static void save() {
-        FileUtils.checkFile(file);
-
-        try {
-            List<String> lines = new ArrayList<>();
-
-            for (PermLevelPlayer player : list) {
-                lines.add(player.username + "," + player.uuid.toString() + "," + player.level);
-            }
-
-            Files.write(Path.of(file), lines);
-        } catch (IOException e) {
-            Main.warn("Failed to save list list: " + e.getMessage());
-        }
-    }
-
-    public record PermLevelPlayer(String username, UUID uuid, int level) {}
 }

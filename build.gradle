@@ -18,4 +18,6 @@ dependencies {
 
     implementation "org.slf4j:slf4j-api:${project.slf4j}"
     implementation "org.slf4j:slf4j-simple:${project.slf4j}"
+
+    implementation "org.xerial:sqlite-jdbc:${project.sqlite}"
 }

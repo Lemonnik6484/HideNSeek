@@ -14,6 +14,7 @@ package dev.lemonnik.hidenseek.sql;
 public record SQLRow(String name, Type type, boolean nullable, boolean isPrimaryKey, boolean unique, boolean autoIncrement) {
     public enum Type {
         INTEGER,
+        REAL,
         TEXT,
         BOOLEAN
     }

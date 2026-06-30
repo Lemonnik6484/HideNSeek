@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SQLManager {
@@ -38,8 +39,19 @@ public class SQLManager {
     }
 
     public static void insertOrUpdate(String table, List<SQLRow> keys, List<Object> values) throws SQLException {
-        var update = SQLManager.conn.prepareStatement(QueryBuilder.update(table, keys, null));
-        fillStatement(update, values);
+        List<SQLRow> whereRows = keys.stream().filter(SQLRow::isPrimaryKey).toList(); // primary keys
+        List<SQLRow> setRows = keys.stream().filter(r -> !r.isPrimaryKey()).toList(); // not primary keys
+
+        List<Object> setValues = new ArrayList<>();
+        List<Object> whereValues = new ArrayList<>();
+        for (int i = 0; i < keys.size(); i++) {
+            if (keys.get(i).isPrimaryKey()) whereValues.add(values.get(i));
+            else setValues.add(values.get(i));
+        }
+
+        var update = SQLManager.conn.prepareStatement(QueryBuilder.update(table, setRows, whereRows));
+        fillStatement(update, setValues);
+        fillStatement(update, whereValues);
 
         var linesUpdated = update.executeUpdate();
         if (linesUpdated == 0) {

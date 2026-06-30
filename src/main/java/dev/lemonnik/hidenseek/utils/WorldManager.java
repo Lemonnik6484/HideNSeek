@@ -15,13 +15,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class WorldManager {
     private static final LinkedHashMap<String, InstanceContainer> worlds = new LinkedHashMap<>();
-    private static String spawnWorldId = "lobby";
+    private static final String spawnWorldId = System.getProperty("lobby") != null ? System.getProperty("lobby") : "lobby";
 
     public static enum WorldType {
         ANVIL,
@@ -82,7 +82,6 @@ public class WorldManager {
             Main.info("Loaded world " + id);
         }
 
-        spawnWorldId = System.getProperty("lobby") != null ? System.getProperty("lobby") : "lobby";
         Main.info("Set spawn world to " + spawnWorldId);
     }
 
@@ -92,6 +91,19 @@ public class WorldManager {
 
     public static InstanceContainer getWorld(String id) {
         return worlds.get(fixId(id));
+    }
+
+    public static InstanceContainer getRandomWorld() {
+        List<InstanceContainer> candidates = worlds.entrySet().stream()
+                .filter(entry -> !entry.getKey().equals(spawnWorldId))
+                .map(Map.Entry::getValue)
+                .toList();
+
+        if (candidates.isEmpty()) {
+            throw new IllegalStateException("No worlds available besides the spawn world");
+        }
+
+        return candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
     }
 
     public static InstanceContainer getSpawnWorld() {

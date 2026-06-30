@@ -7,7 +7,9 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
+import net.minestom.server.event.instance.InstanceTickEvent;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
+import net.minestom.server.event.player.PlayerDisconnectEvent;
 import net.minestom.server.event.player.PlayerGameModeRequestEvent;
 import net.minestom.server.extras.lan.OpenToLAN;
 import org.slf4j.Logger;
@@ -35,6 +37,11 @@ public class Main {
             event.setSpawningInstance(WorldManager.getSpawnWorld());
             player.setRespawnPoint(new Pos(0, 0, 0));
             player.setPermissionLevel(PermsList.getLevel(player.getUuid()));
+            SessionManager.onPlayerJoin(player);
+        });
+
+        globalEventHandler.addListener(PlayerDisconnectEvent.class, event -> {
+           SessionManager.onPlayerLeave(event.getPlayer());
         });
 
         globalEventHandler.addListener(PlayerGameModeRequestEvent.class, event -> {

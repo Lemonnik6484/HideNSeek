@@ -150,9 +150,10 @@ public class SessionManager {
 
     private static void teleportToWorld(List<Player> group) {
         for (Player player : group) {
-            player.setInstance(currentWorld.world());
-            Pos pos = WorldManager.getWorldSpawn(currentWorld.id());
-            if (pos != null) player.teleport(pos);
+            player.setInstance(currentWorld.world()).thenRun(() -> {
+                Pos pos = WorldManager.getWorldSpawn(currentWorld.id());
+                if (pos != null) player.teleport(pos);
+            });
         }
     }
 

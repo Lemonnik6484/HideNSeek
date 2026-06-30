@@ -69,7 +69,7 @@ public class SessionManager {
                         if (ticksPassed >= hidingDuration) {
                             state = State.GAME;
                             ticksPassed = 0;
-                            releaseSeekers();
+                            teleportToSpawn(seekers);
                         }
                         break;
                     case GAME:
@@ -140,21 +140,11 @@ public class SessionManager {
             Main.info("  - " + player.getUsername());
         }
 
-        for (Player player : hiders) {
-            player.setInstance(currentWorld.world());
-            Pos pos = WorldManager.getWorldSpawn(currentWorld.id());
-            if (pos != null) {
-                MinecraftServer.getSchedulerManager().scheduleNextTick(() -> {
-                    player.teleport(pos);
-                });
-            } else {
-                throw new RuntimeException("Failed to teleport to world");
-            }
-        }
+        teleportToSpawn(hiders);
     }
 
-    private static void releaseSeekers() {
-        for (Player player : seekers) {
+    private static void teleportToSpawn(List<Player> group) {
+        for (Player player : group) {
             player.setInstance(currentWorld.world());
             Pos pos = WorldManager.getWorldSpawn(currentWorld.id());
             if (pos != null) {

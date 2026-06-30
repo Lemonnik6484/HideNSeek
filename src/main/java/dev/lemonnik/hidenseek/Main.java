@@ -1,6 +1,7 @@
 package dev.lemonnik.hidenseek;
 
 import dev.lemonnik.hidenseek.sql.SQLManager;
+import dev.lemonnik.hidenseek.utils.BadPractices;
 import dev.lemonnik.hidenseek.utils.PermsList;
 import dev.lemonnik.hidenseek.utils.WorldManager;
 import net.minestom.server.Auth;
@@ -20,13 +21,7 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger("Server");
 
     static void main(String[] args) {
-        try {
-            SQLManager.init();
-        } catch (Exception e) {
-            logger.info("fucked up");
-            e.printStackTrace();
-            return;
-        }
+        BadPractices.yum(SQLManager::init);
 
         MinecraftServer minecraftServer = MinecraftServer.init(new Auth.Online());
 

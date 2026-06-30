@@ -1,11 +1,12 @@
 package dev.lemonnik.hidenseek;
 
+import dev.lemonnik.hidenseek.utils.World;
 import dev.lemonnik.hidenseek.utils.WorldManager;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
-import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public class SessionManager {
     private static final Scheduler scheduler = MinecraftServer.getSchedulerManager();
-    private static final BossBar BOSS_BAR = BossBar.bossBar(Component.text("Timer"), 1, BossBar.Color.GREEN, BossBar.Overlay.PROGRESS);
+    private static final BossBar BOSS_BAR = BossBar.bossBar(Component.text("Waiting for players: 2+"), 1, BossBar.Color.BLUE, BossBar.Overlay.PROGRESS);
 
     private static final int intermissionDuration = 90 * 20; // 1.5min
     private static final int hidingDuration = 60 * 20; // 1min
@@ -29,7 +30,7 @@ public class SessionManager {
     private static final ArrayList<Player> hiders = new ArrayList<>();
     private static final ArrayList<Player> seekers = new ArrayList<>();
 
-    private static InstanceContainer currentInstance;
+    private static World currentWorld;
 
     private static Task task;
 
@@ -94,6 +95,9 @@ public class SessionManager {
         if (MinecraftServer.getConnectionManager().getOnlinePlayerCount() < 2 || hiders.isEmpty() || seekers.isEmpty()) {
             task.cancel();
             state = State.IDLE;
+            BOSS_BAR.color(BossBar.Color.BLUE);
+            BOSS_BAR.progress(1);
+            BOSS_BAR.name(Component.text("Waiting for players: 2+"));
             ticksPassed = 0;
             hiders.clear();
             seekers.clear();
@@ -101,7 +105,7 @@ public class SessionManager {
     }
 
     private static void initGame() {
-        currentInstance = WorldManager.getRandomWorld();
+        currentWorld = WorldManager.getRandomWorld();
 
         hiders.clear();
         seekers.clear();
@@ -120,22 +124,27 @@ public class SessionManager {
         }
 
         for (Player player : hiders) {
-            player.setInstance(currentInstance);
-            // TODO: set coords too
+            player.setInstance(currentWorld.world());
+            Pos pos = WorldManager.getWorldSpawn(currentWorld.id());
+            if (pos != null) {
+                player.teleport(pos);
+            }
         }
     }
 
     private static void releaseSeekers() {
         for (Player player : seekers) {
-            player.setInstance(currentInstance);
-            // TODO: coords
+            player.setInstance(currentWorld.world());
+            Pos pos = WorldManager.getWorldSpawn(currentWorld.id());
+            if (pos != null) {
+                player.teleport(pos);
+            }
         }
     }
 
     private static void stopGame() {
         for (Player player : MinecraftServer.getConnectionManager().getOnlinePlayers()) {
-            InstanceContainer spawn = WorldManager.getSpawnWorld();
-            player.setInstance(spawn);
+            player.setInstance(WorldManager.getSpawnWorld().world());
             hiders.clear();
             seekers.clear();
             state = State.IDLE;

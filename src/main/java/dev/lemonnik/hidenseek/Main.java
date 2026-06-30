@@ -9,10 +9,10 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
-import net.minestom.server.event.instance.InstanceTickEvent;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
 import net.minestom.server.event.player.PlayerGameModeRequestEvent;
+import net.minestom.server.event.player.PlayerLoadedEvent;
 import net.minestom.server.extras.lan.OpenToLAN;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,9 +36,13 @@ public class Main {
         GlobalEventHandler globalEventHandler = MinecraftServer.getGlobalEventHandler();
         globalEventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
             final Player player = event.getPlayer();
-            event.setSpawningInstance(WorldManager.getSpawnWorld());
+            event.setSpawningInstance(WorldManager.getSpawnWorld().world());
             player.setRespawnPoint(new Pos(0, 0, 0));
             player.setPermissionLevel(PermsList.getLevel(player.getUuid()));
+        });
+
+        globalEventHandler.addListener(PlayerLoadedEvent.class, event -> {
+            final Player player = event.getPlayer();
             SessionManager.onPlayerJoin(player);
         });
 

@@ -7,6 +7,7 @@ import net.hollowcube.polar.AnvilPolar;
 import net.hollowcube.polar.PolarLoader;
 import net.hollowcube.polar.PolarWriter;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
@@ -25,7 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class WorldManager {
-    private static final LinkedHashMap<String, InstanceContainer> worlds = new LinkedHashMap<>();
+    private static final ArrayList<World> worlds = new ArrayList<>();
     private static final String spawnWorldId = System.getProperty("lobby") != null ? System.getProperty("lobby") : "lobby";
 
     public static enum WorldType {
@@ -83,7 +84,7 @@ public class WorldManager {
 
             String id = fixId(file.getName());
 
-            worlds.put(id, instanceContainer);
+            worlds.add(new World(id, instanceContainer));
             Main.info("Loaded world " + id);
         }
 
@@ -108,7 +109,7 @@ public class WorldManager {
         )));
     }
 
-    public static @Nullable Vec getWorldSpawn(String id) {
+    public static @Nullable Pos getWorldSpawn(String id) {
         return BadPractices.interrogate(() -> {
             var select = SQLManager.conn.prepareStatement(QueryBuilder.select("spawns", List.of(
                     SQLManager.ROW_X,
@@ -120,7 +121,7 @@ public class WorldManager {
             ResultSet result = select.executeQuery();
             if (!result.next()) return null;
 
-            return new Vec(
+            return new Pos(
                     result.getDouble(SQLManager.ROW_X.name()),
                     result.getDouble(SQLManager.ROW_Y.name()),
                     result.getDouble(SQLManager.ROW_Z.name())
@@ -128,14 +129,16 @@ public class WorldManager {
         });
     }
 
-    public static InstanceContainer getWorld(String id) {
-        return worlds.get(fixId(id));
+    public static @Nullable World getWorld(String id) {
+        return worlds.stream().filter(world -> world.id()
+                .equals(fixId(id)))
+                .findFirst()
+                .orElse(null);
     }
 
-    public static InstanceContainer getRandomWorld() {
-        List<InstanceContainer> candidates = worlds.entrySet().stream()
-                .filter(entry -> !entry.getKey().equals(spawnWorldId))
-                .map(Map.Entry::getValue)
+    public static World getRandomWorld() {
+        List<World> candidates = worlds.stream()
+                .filter(world -> !world.id().equals(spawnWorldId))
                 .toList();
 
         if (candidates.isEmpty()) {
@@ -145,9 +148,10 @@ public class WorldManager {
         return candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
     }
 
-    public static InstanceContainer getSpawnWorld() {
-        if (worlds.containsKey(spawnWorldId)) {
-            return worlds.get(spawnWorldId);
+    public static World getSpawnWorld() {
+        World world = getWorld(spawnWorldId);
+        if (world != null) {
+            return world;
         } else {
             throw new RuntimeException("Could not find world with id " + spawnWorldId);
         }

@@ -1,21 +1,27 @@
 package dev.lemonnik.hidenseek.utils;
 
 import dev.lemonnik.hidenseek.Main;
+import dev.lemonnik.hidenseek.sql.QueryBuilder;
+import dev.lemonnik.hidenseek.sql.SQLManager;
 import net.hollowcube.polar.AnvilPolar;
 import net.hollowcube.polar.PolarLoader;
 import net.hollowcube.polar.PolarWriter;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.LightingChunk;
 import net.minestom.server.instance.anvil.AnvilLoader;
 import net.minestom.server.world.DimensionType;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.ResultSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -88,6 +94,40 @@ public class WorldManager {
 
     private static String fixId(String id) {
         return id.trim().toLowerCase().replace(" ", "_");
+    }
+
+    public static void setWorldSpawn(String id, Vec spawn) {
+        BadPractices.yum(() -> SQLManager.insertOrUpdate("spawns", List.of(
+                SQLManager.ROW_WORLD_ID,
+                SQLManager.ROW_X,
+                SQLManager.ROW_Y,
+                SQLManager.ROW_Z
+        ), List.of(
+                id,
+                spawn.x(),
+                spawn.y(),
+                spawn.z()
+        )));
+    }
+
+    public static @Nullable Vec getWorldSpawn(String id) {
+        return BadPractices.interrogate(() -> {
+            var select = SQLManager.conn.prepareStatement(QueryBuilder.select("spawns", List.of(
+                    SQLManager.ROW_X,
+                    SQLManager.ROW_Y,
+                    SQLManager.ROW_Z
+            ), List.of(SQLManager.ROW_WORLD_ID)));
+            select.setString(1, id);
+
+            ResultSet result = select.executeQuery();
+            if (!result.next()) return null;
+
+            return new Vec(
+                    result.getDouble(SQLManager.ROW_X.name()),
+                    result.getDouble(SQLManager.ROW_Y.name()),
+                    result.getDouble(SQLManager.ROW_Z.name())
+            );
+        });
     }
 
     public static InstanceContainer getWorld(String id) {

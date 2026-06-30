@@ -35,4 +35,25 @@ public record SQLRow(String name, Type type, boolean nullable, boolean isPrimary
 
     //
     // creation methods
+    //
+
+    public static SQLRow simple(String name, Type type) {
+        return new SQLRow(name, type, true, false, false, false);
+    }
+
+    public static SQLRow autoIncrement(String name, boolean nullable) {
+        return new SQLRow(name, Type.INTEGER, nullable, false, false, true);
+    }
+
+    public static SQLRow primary(String name, Type type) {
+        return new SQLRow(name, type, false, true, false, false);
+    }
+
+    public static SQLRow primaryAutoIncrement(String name) {
+        return new SQLRow(name, Type.INTEGER, false, true, false, true);
+    }
+
+    public static SQLRow unique(String name, Type type) {
+        return new SQLRow(name, type, false, false, true, false);
+    }
 }

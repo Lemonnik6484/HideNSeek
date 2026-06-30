@@ -39,8 +39,8 @@ public class SQLManager {
     }
 
     public static void insertOrUpdate(String table, List<SQLRow> keys, List<Object> values) throws SQLException {
-        List<SQLRow> whereRows = keys.stream().filter(SQLRow::isPrimaryKey).toList(); // primary keys
-        List<SQLRow> setRows = keys.stream().filter(r -> !r.isPrimaryKey()).toList(); // not primary keys
+        List<SQLRow> whereRows = keys.stream().filter(SQLRow::isPrimaryKey).toList();
+        List<SQLRow> setRows = keys.stream().filter(r -> !r.isPrimaryKey()).toList();
 
         List<Object> setValues = new ArrayList<>();
         List<Object> whereValues = new ArrayList<>();
@@ -49,9 +49,11 @@ public class SQLManager {
             else setValues.add(values.get(i));
         }
 
+        List<Object> orderedValues = new ArrayList<>(setValues);
+        orderedValues.addAll(whereValues);
+
         var update = SQLManager.conn.prepareStatement(QueryBuilder.update(table, setRows, whereRows));
-        fillStatement(update, setValues);
-        fillStatement(update, whereValues);
+        fillStatement(update, orderedValues);
 
         var linesUpdated = update.executeUpdate();
         if (linesUpdated == 0) {

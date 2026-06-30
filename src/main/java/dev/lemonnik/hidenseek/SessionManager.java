@@ -4,11 +4,15 @@ import dev.lemonnik.hidenseek.utils.World;
 import dev.lemonnik.hidenseek.utils.WorldManager;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.potion.Potion;
 import net.minestom.server.potion.PotionEffect;
+import net.minestom.server.network.packet.server.play.TeamsPacket;
+import net.minestom.server.scoreboard.Team;
+import net.minestom.server.scoreboard.TeamManager;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
@@ -149,6 +153,14 @@ public class SessionManager {
         }
 
         teleportToWorld(hiders, currentWorld);
+        Team globalTeam = new TeamManager()
+                .createBuilder("hiddenNametags")
+                .teamColor(NamedTextColor.RED)
+                .nameTagVisibility(TeamsPacket.NameTagVisibility.NEVER)
+                .build();
+        for (Player player : players) {
+            player.setTeam(globalTeam);
+        }
     }
 
     private static void teleportToWorld(List<Player> group, World world) {

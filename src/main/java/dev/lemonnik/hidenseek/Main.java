@@ -28,8 +28,6 @@ public class Main {
             return;
         }
 
-        PermsList.load();
-
         MinecraftServer minecraftServer = MinecraftServer.init(new Auth.Online());
 
         Commands.registerCommands();

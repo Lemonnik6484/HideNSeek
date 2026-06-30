@@ -26,6 +26,12 @@ public class SessionManager {
     private static final Scheduler scheduler = MinecraftServer.getSchedulerManager();
     private static final BossBar BOSS_BAR = BossBar.bossBar(Component.text("Waiting for players: 2+"), 1, BossBar.Color.BLUE, BossBar.Overlay.PROGRESS);
 
+    private static final Team globalTeam = new TeamManager()
+            .createBuilder("hiddenNametags")
+            .teamColor(NamedTextColor.RED)
+            .nameTagVisibility(TeamsPacket.NameTagVisibility.NEVER)
+            .build();
+
     private static final int intermissionDuration = 90 * 20; // 1.5min
     private static final int hidingDuration = 60 * 20; // 1min
     private static final int gameDuration = 7 * 60 * 20; // 7min
@@ -171,11 +177,6 @@ public class SessionManager {
         }
 
         teleportToWorld(hiders, currentWorld);
-        Team globalTeam = new TeamManager()
-                .createBuilder("hiddenNametags")
-                .teamColor(NamedTextColor.RED)
-                .nameTagVisibility(TeamsPacket.NameTagVisibility.NEVER)
-                .build();
         for (Player player : players) {
             player.setTeam(globalTeam);
         }

@@ -69,7 +69,7 @@ public class SessionManager {
                         if (ticksPassed >= hidingDuration) {
                             state = State.GAME;
                             ticksPassed = 0;
-                            teleportToWorld(seekers);
+                            teleportToWorld(seekers, currentWorld);
                         }
                         break;
                     case GAME:
@@ -145,27 +145,23 @@ public class SessionManager {
             Main.info("  - " + player.getUsername());
         }
 
-        teleportToWorld(hiders);
+        teleportToWorld(hiders, currentWorld);
     }
 
-    private static void teleportToWorld(List<Player> group) {
+    private static void teleportToWorld(List<Player> group, World world) {
         for (Player player : group) {
-            player.setInstance(currentWorld.world()).thenRun(() -> {
-                Pos pos = WorldManager.getWorldSpawn(currentWorld.id());
+            player.setInstance(world.world()).thenRun(() -> {
+                Pos pos = WorldManager.getWorldSpawn(world.id());
                 if (pos != null) player.teleport(pos);
             });
         }
     }
 
     private static void stopGame() {
-        for (Player player : MinecraftServer.getConnectionManager().getOnlinePlayers()) {
-            World spawnWorld = WorldManager.getSpawnWorld();
-            player.setInstance(spawnWorld.world());
-            Pos pos = WorldManager.getWorldSpawn(spawnWorld.id());
-            if (pos != null) player.teleport(pos);
-            hiders.clear();
-            seekers.clear();
-            state = State.IDLE;
-        }
+        World spawnWorld = WorldManager.getSpawnWorld();
+        teleportToWorld(MinecraftServer.getConnectionManager().getOnlinePlayers().stream().toList(), spawnWorld);
+        hiders.clear();
+        seekers.clear();
+        state = State.IDLE;
     }
 }

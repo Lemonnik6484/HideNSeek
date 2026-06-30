@@ -6,20 +6,23 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class SQLManager {
-    private static final Connection connection;
+    public static final SQLRow ROW_UUID = SQLRow.simple("uuid", SQLRow.Type.TEXT);
+    public static final SQLRow ROW_PERMISSION_LEVEL = SQLRow.simple("permissionLevel", SQLRow.Type.INTEGER);
+
+    public static final Connection conn;
 
     static {
         try {
-            connection = DriverManager.getConnection("jdbc:sqlite:database.db");
+            conn = DriverManager.getConnection("jdbc:sqlite:database.db");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
     public static void init() throws SQLException {
-        connection.prepareStatement(QueryBuilder.createTable("permissions", List.of(
-                SQLRow.primary("uuid", SQLRow.Type.TEXT),
-                SQLRow.simple("permissionLevel", SQLRow.Type.INTEGER)
-        ))).execute();
+        conn.prepareStatement(QueryBuilder.createTable(
+                "permissions",
+                List.of(ROW_UUID, ROW_PERMISSION_LEVEL)
+        )).execute();
     }
 }

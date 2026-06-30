@@ -91,6 +91,10 @@ public class SessionManager {
         }
     }
 
+    public static void skipIntermission() {
+        ticksPassed = intermissionDuration;
+    }
+
     public static void onPlayerLeave(Player player) {
         if (MinecraftServer.getConnectionManager().getOnlinePlayerCount() < 2 || hiders.isEmpty() || seekers.isEmpty()) {
             if (task != null) {

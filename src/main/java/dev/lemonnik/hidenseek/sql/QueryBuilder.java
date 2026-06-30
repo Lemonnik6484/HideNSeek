@@ -41,7 +41,7 @@ public class QueryBuilder {
         return builder.toString();
     }
 
-    public static String update(String table, List<SQLRow> setRows, List<SQLRow> whereRows) {
+    public static String update(String table, List<SQLRow> setRows, @Nullable List<SQLRow> whereRows) {
         StringBuilder builder = new StringBuilder("UPDATE ");
         builder.append(table);
         builder.append(" SET ");

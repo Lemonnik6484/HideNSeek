@@ -7,6 +7,9 @@ import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
+import net.minestom.server.network.packet.server.play.TeamsPacket;
+import net.minestom.server.scoreboard.Team;
+import net.minestom.server.scoreboard.TeamManager;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
@@ -143,6 +146,14 @@ public class SessionManager {
         Main.info("Seekers: ");
         for (Player player : seekers) {
             Main.info("  - " + player.getUsername());
+        }
+
+        Team hiddenNametagsTeam = new TeamManager()
+                .createBuilder("hiddenNametags")
+                .nameTagVisibility(TeamsPacket.NameTagVisibility.NEVER)
+                .build();
+        for (Player player : players) {
+            player.setTeam(hiddenNametagsTeam);
         }
 
         teleportToWorld(hiders);

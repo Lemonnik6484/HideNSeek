@@ -92,7 +92,7 @@ public class SessionManager {
     }
 
     public static void skipIntermission() {
-        ticksPassed = intermissionDuration;
+        ticksPassed = intermissionDuration - 1;
     }
 
     public static void onPlayerLeave(Player player) {
@@ -112,6 +112,7 @@ public class SessionManager {
 
     private static void initGame() {
         currentWorld = WorldManager.getRandomWorld();
+        Main.info("Selected map: " + currentWorld.id());
 
         hiders.clear();
         seekers.clear();
@@ -129,11 +130,25 @@ public class SessionManager {
             }
         }
 
+        Main.info("Hiders: ");
+        for (Player player : hiders) {
+            Main.info("  - " + player.getUsername());
+        }
+
+        Main.info("Seekers: ");
+        for (Player player : seekers) {
+            Main.info("  - " + player.getUsername());
+        }
+
         for (Player player : hiders) {
             player.setInstance(currentWorld.world());
             Pos pos = WorldManager.getWorldSpawn(currentWorld.id());
             if (pos != null) {
-                player.teleport(pos);
+                MinecraftServer.getSchedulerManager().scheduleNextTick(() -> {
+                    player.teleport(pos);
+                });
+            } else {
+                throw new RuntimeException("Failed to teleport to world");
             }
         }
     }
@@ -143,7 +158,11 @@ public class SessionManager {
             player.setInstance(currentWorld.world());
             Pos pos = WorldManager.getWorldSpawn(currentWorld.id());
             if (pos != null) {
-                player.teleport(pos);
+                MinecraftServer.getSchedulerManager().scheduleNextTick(() -> {
+                    player.teleport(pos);
+                });
+            } else {
+                throw new RuntimeException("Failed to teleport to world");
             }
         }
     }

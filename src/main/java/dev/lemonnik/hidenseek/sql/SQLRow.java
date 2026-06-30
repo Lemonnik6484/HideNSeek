@@ -22,9 +22,9 @@ public record SQLRow(String name, Type type, boolean nullable, boolean isPrimary
         StringBuilder builder = new StringBuilder();
 
         if (isPrimaryKey) builder.append(" PRIMARY KEY");
+        if (autoIncrement) builder.append(" AUTOINCREMENT");
         if (!nullable) builder.append(" NOT NULL");
         if (unique) builder.append(" UNIQUE");
-        if (autoIncrement) builder.append(" AUTOINCREMENT");
 
         return "%s %s%s".formatted(
                 name,

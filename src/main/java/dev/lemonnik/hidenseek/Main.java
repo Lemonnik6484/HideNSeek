@@ -25,6 +25,7 @@ public class Main {
         } catch (Exception e) {
             logger.info("fucked up");
             e.printStackTrace();
+            return;
         }
 
         PermsList.load();

@@ -3,12 +3,12 @@ package dev.lemonnik.hidenseek.sql;
 import java.util.List;
 
 public class QueryBuilder {
-    public static String createTable(String name, List<SQLValue> rows) {
+    public static String createTable(String name, List<SQLRow> rows) {
         StringBuilder builder = new StringBuilder("CREATE TABLE IF NOT EXISTS ");
         builder.append(name);
         builder.append(" (");
 
-        for (SQLValue row : rows) {
+        for (SQLRow row : rows) {
             builder.append(row.toStringAsSchema());
             builder.append(", ");
         }

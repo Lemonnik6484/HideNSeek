@@ -28,7 +28,6 @@ public class SessionManager {
 
     private static final Team globalTeam = new TeamManager()
             .createBuilder("hiddenNametags")
-            .teamColor(NamedTextColor.RED)
             .nameTagVisibility(TeamsPacket.NameTagVisibility.NEVER)
             .build();
 

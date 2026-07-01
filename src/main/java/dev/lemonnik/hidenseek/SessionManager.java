@@ -21,9 +21,7 @@ import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class SessionManager {
     private static final Scheduler scheduler = MinecraftServer.getSchedulerManager();
@@ -34,6 +32,7 @@ public class SessionManager {
             .nameTagVisibility(TeamsPacket.NameTagVisibility.NEVER)
             .build();
 
+    private static final int seekerCount = 1;
     private static final int intermissionDuration = 20 * 20; // 1.5min
     private static final int hidingDuration = 15 * 20; // 1min
     private static final int gameDuration = 1 * 60 * 20; // 7min
@@ -44,6 +43,7 @@ public class SessionManager {
     private static final ArrayList<Player> hiders = new ArrayList<>();
     private static final ArrayList<Player> seekers = new ArrayList<>();
     private static final ArrayList<Player> spectators = new ArrayList<>();
+    private static final HashMap<Player, Integer> seekerWeights = new HashMap<>();
 
     private static World currentWorld;
 
@@ -85,7 +85,7 @@ public class SessionManager {
             teleportToWorld(player, currentWorld);
         }
 
-        if (MinecraftServer.getConnectionManager().getOnlinePlayerCount() > 0 && state == State.IDLE) {
+        if (MinecraftServer.getConnectionManager().getOnlinePlayerCount() > 1 && state == State.IDLE) {
             state = State.INTERMISSION;
             gameTickTask = scheduler.submitTask(() -> {
                 int secondsLeft;
@@ -202,21 +202,35 @@ public class SessionManager {
         hiders.clear();
         seekers.clear();
 
-        List<Player> players = new ArrayList<>(MinecraftServer.getConnectionManager().getOnlinePlayers());
-        Collections.shuffle(players);
+        List<Player> onlinePlayers = new ArrayList<>(MinecraftServer.getConnectionManager().getOnlinePlayers());
+        for (Player player : onlinePlayers) {
+            seekerWeights.putIfAbsent(player, 1);
+        }
 
-        int hiderCount = Math.min(players.size() - 1, (int) Math.ceil(players.size() * 0.9));
+        seekerWeights.keySet().retainAll(onlinePlayers);
+        List<Player> weightedPool = new ArrayList<>();
+        for (Player player : onlinePlayers) {
+            int weight = seekerWeights.get(player);
+            for (int i = 0; i < weight; i++) weightedPool.add(player);
+        }
 
-        for (int i = 0; i < players.size(); i++) {
-            if (i < hiderCount) {
-                hiders.add(players.get(i));
-            } else {
-                seekers.add(players.get(i));
+        for (int i = 0; i < seekerCount; i++) {
+            Player seeker = weightedPool.get((int) Math.floor(Math.random() * weightedPool.size()));
+            weightedPool.removeAll(Collections.singletonList(seeker));
+
+            seekers.add(seeker);
+            seekerWeights.put(seeker, Math.max(seekerWeights.get(seeker) - 1, 1));
+        }
+
+        for (Player player : onlinePlayers) {
+            if (!seekers.contains(player)) {
+                hiders.add(player);
+                seekerWeights.put(player, seekerWeights.get(player) + 1);
             }
         }
 
         Main.info("Hiders: ");
-        for (Player player : seekers) {
+        for (Player player : hiders) {
             Main.info("  - " + player.getUsername());
             player.getInventory().setItemStack(8, ItemStack
                     .builder(Material.BELL)
@@ -226,7 +240,7 @@ public class SessionManager {
         }
 
         Main.info("Seekers: ");
-        for (Player player : hiders) {
+        for (Player player : seekers) {
             Main.info("  - " + player.getUsername());
             player.setGlowing(true);
             player.getInventory().setItemStack(8, ItemStack
@@ -237,7 +251,7 @@ public class SessionManager {
         }
 
         teleportToWorld(hiders, currentWorld);
-        for (Player player : players) {
+        for (Player player : onlinePlayers) {
             player.setTeam(globalTeam);
         }
         Main.info("======================");
@@ -271,7 +285,6 @@ public class SessionManager {
                     return TaskSchedule.stop();
                 }
 
-                player.sendMessage(String.valueOf(stack2.amount()));
                 player.getInventory().setItemStack(8, stack.withAmount(stack2.amount() - 1));
 
                 return stack2.amount() >= 1 ? TaskSchedule.seconds(1) : TaskSchedule.stop();

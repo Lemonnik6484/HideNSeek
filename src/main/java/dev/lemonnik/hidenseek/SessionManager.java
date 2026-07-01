@@ -8,7 +8,6 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.component.DataComponent;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
@@ -35,14 +34,6 @@ public class SessionManager {
             .nameTagVisibility(TeamsPacket.NameTagVisibility.NEVER)
             .build();
 
-    private static final ItemStack bell = ItemStack.builder(Material.BELL)
-            .customName(Component.text("Ring the bell"))
-            .build();
-
-    private static final ItemStack spawn = ItemStack.builder(Material.HEART_OF_THE_SEA)
-            .customName(Component.text("TP to spawn"))
-            .build();
-
     private static final int intermissionDuration = 20 * 20; // 1.5min
     private static final int hidingDuration = 15 * 20; // 1min
     private static final int gameDuration = 1 * 60 * 20; // 7min
@@ -56,7 +47,7 @@ public class SessionManager {
 
     private static World currentWorld;
 
-    private static Task task;
+    private static Task gameTickTask;
 
     private enum State {
         IDLE,
@@ -74,7 +65,7 @@ public class SessionManager {
     }
 
     public static void init() {
-        MinecraftServer.getGlobalEventHandler().addListener(EntityAttackEvent .class, event -> {
+        MinecraftServer.getGlobalEventHandler().addListener(EntityAttackEvent.class, event -> {
             if (event.getEntity() instanceof Player player && event.getTarget() instanceof Player playerTarget) {
                 if (SessionManager.is(SessionManager.PlayerState.SEEKER, player) && SessionManager.is(SessionManager.PlayerState.HIDER, playerTarget)) {
                     hiders.remove(playerTarget);
@@ -94,46 +85,58 @@ public class SessionManager {
             teleportToWorld(player, currentWorld);
         }
 
-        if (MinecraftServer.getConnectionManager().getOnlinePlayerCount() > 1 && state == State.IDLE) {
+        if (MinecraftServer.getConnectionManager().getOnlinePlayerCount() > 0 && state == State.IDLE) {
             state = State.INTERMISSION;
-            task = scheduler.submitTask(() -> {
+            gameTickTask = scheduler.submitTask(() -> {
                 int secondsLeft;
+
                 switch (state) {
-                    case INTERMISSION:
+
+                    case INTERMISSION -> {
                         ticksPassed++;
                         secondsLeft = (intermissionDuration - ticksPassed) / 20;
+
                         BOSS_BAR.name(Component.text("Intermission: " + secondsLeft + "s left"));
                         setBossBarProgress((float) ticksPassed / intermissionDuration);
                         BOSS_BAR.color(BossBar.Color.GREEN);
+
                         if (ticksPassed >= intermissionDuration) {
                             state = State.HIDING;
                             ticksPassed = 0;
                             initGame();
                         }
-                        break;
-                    case HIDING:
+                    }
+
+
+                    case HIDING -> {
                         ticksPassed++;
                         secondsLeft = (hidingDuration - ticksPassed) / 20;
+
                         BOSS_BAR.name(Component.text("Hiding: " + secondsLeft + "s left"));
                         setBossBarProgress((float) ticksPassed / hidingDuration);
                         BOSS_BAR.color(BossBar.Color.YELLOW);
+
                         if (ticksPassed >= hidingDuration) {
                             state = State.GAME;
                             ticksPassed = 0;
                             teleportToWorld(seekers, currentWorld);
                         }
-                        break;
-                    case GAME:
+                    }
+
+
+                    case GAME -> {
                         ticksPassed++;
                         secondsLeft = (gameDuration - ticksPassed) / 20;
-                        BOSS_BAR.name(Component.text("Game: " + secondsLeft+ "s left"));
+
+                        BOSS_BAR.name(Component.text("Game: " + secondsLeft + "s left"));
                         setBossBarProgress((float) ticksPassed / gameDuration);
                         BOSS_BAR.color(BossBar.Color.RED);
+
                         if (ticksPassed >= gameDuration) {
                             checkWin();
                             state = State.INTERMISSION;
                         }
-                        break;
+                    }
                 }
 
                 return TaskSchedule.tick(1);
@@ -173,15 +176,13 @@ public class SessionManager {
         hiders.remove(player);
         spectators.remove(player);
         seekers.remove(player);
+
         if (MinecraftServer.getConnectionManager().getOnlinePlayerCount() < 2 || hiders.isEmpty() || seekers.isEmpty()) {
-            if (task != null) {
-                task.cancel();
-            }
-            if (MinecraftServer.getConnectionManager().getOnlinePlayerCount() < 2) {
-                state = State.IDLE;
-            } else {
-                state = State.INTERMISSION;
-            }
+            if (gameTickTask != null) gameTickTask.cancel();
+
+            if (MinecraftServer.getConnectionManager().getOnlinePlayerCount() < 2) state = State.IDLE;
+            else state = State.INTERMISSION;
+
             BOSS_BAR.color(BossBar.Color.BLUE);
             BOSS_BAR.progress(1);
             BOSS_BAR.name(Component.text("Waiting for players: 2+"));
@@ -215,16 +216,24 @@ public class SessionManager {
         }
 
         Main.info("Hiders: ");
-        for (Player player : hiders) {
+        for (Player player : seekers) {
             Main.info("  - " + player.getUsername());
-            player.setItemInMainHand(bell);
+            player.getInventory().setItemStack(8, ItemStack
+                    .builder(Material.BELL)
+                    .customName(Component.text("§eSounditem"))
+                    .build()
+            );
         }
 
         Main.info("Seekers: ");
-        for (Player player : seekers) {
+        for (Player player : hiders) {
             Main.info("  - " + player.getUsername());
             player.setGlowing(true);
-            player.setItemInMainHand(spawn);
+            player.getInventory().setItemStack(8, ItemStack
+                    .builder(Material.CONDUIT)
+                    .customName(Component.text("§eTeleport to spawn"))
+                    .build()
+            );
         }
 
         teleportToWorld(hiders, currentWorld);
@@ -239,10 +248,12 @@ public class SessionManager {
         ItemStack stack = event.getItemStack();
 
         if (stack.material() == Material.BELL) {
+            if (stack.amount() > 1) return;
+
             player.getInstance().playSound(
                     Sound.sound(
                             Key.key("block.bell.use"),
-                            Sound.Source.BLOCK,
+                            Sound.Source.PLAYER,
                             1f,
                             1f
                     ),
@@ -251,16 +262,38 @@ public class SessionManager {
                     player.getPosition().z()
             );
 
+            player.getInventory().setItemStack(8, stack.withAmount(30));
+
+            MinecraftServer.getSchedulerManager().submitTask(() -> {
+                ItemStack stack2 = player.getInventory().getItemStack(8);
+                if (stack2.material() != Material.BELL) {
+                    player.sendMessage("shit");
+                    return TaskSchedule.stop();
+                }
+
+                player.sendMessage(String.valueOf(stack2.amount()));
+                player.getInventory().setItemStack(8, stack.withAmount(stack2.amount() - 1));
+
+                return stack2.amount() >= 1 ? TaskSchedule.seconds(1) : TaskSchedule.stop();
+            });
+
             event.setCancelled(true);
         }
 
-        if (stack.material() == Material.HEART_OF_THE_SEA) {
-                        World world = WorldManager.getWorld(player.getInstance());
+        if (stack.material() == Material.CONDUIT) {
+            World world = WorldManager.getWorld(player.getInstance());
             if (world != null) {
                 Pos pos = WorldManager.getWorldSpawn(world.id());
                 if (pos != null) player.teleport(pos);
             }
 
+            player.playSound(
+                    Sound.sound(
+                            Key.key("entity.enderman.teleport"),
+                            Sound.Source.PLAYER,
+                            1f,
+                            1f
+                    ));
             event.setCancelled(true);
         }
     }

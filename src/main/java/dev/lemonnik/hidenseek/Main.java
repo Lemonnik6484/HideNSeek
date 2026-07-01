@@ -11,6 +11,7 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
+import net.minestom.server.event.inventory.InventoryPreClickEvent;
 import net.minestom.server.event.player.*;
 import net.minestom.server.extras.lan.OpenToLAN;
 import org.slf4j.Logger;
@@ -41,6 +42,14 @@ public class Main {
         }
 
         GlobalEventHandler globalEventHandler = MinecraftServer.getGlobalEventHandler();
+        globalEventHandler.addListener(PlayerGameModeRequestEvent.class, event -> {
+            final Player player = event.getPlayer();
+            if (player.getPermissionLevel() >= 3) {
+                player.setGameMode(event.getRequestedGameMode());
+            }
+        });
+
+        // game logic
         Pos finalSpawnPos = spawnPos;
         globalEventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
             Player player = event.getPlayer();
@@ -59,14 +68,13 @@ public class Main {
            SessionManager.onPlayerLeave(event.getPlayer());
         });
 
-        globalEventHandler.addListener(PlayerGameModeRequestEvent.class, event -> {
-            final Player player = event.getPlayer();
-            if (player.getPermissionLevel() >= 3) {
-                player.setGameMode(event.getRequestedGameMode());
-            }
-        });
-
         globalEventHandler.addListener(PlayerUseItemEvent.class, SessionManager::onItemUse);
+
+        // stop item interactions
+        globalEventHandler.addListener(InventoryPreClickEvent.class, event -> event.setCancelled(true));
+        globalEventHandler.addListener(PlayerSwapItemEvent.class, event -> event.setCancelled(true));
+
+        // -------
 
         int port = System.getProperty("port") != null ? Integer.parseInt(System.getProperty("port")) : 25565;
         String address = System.getProperty("address") != null ? System.getProperty("address") : "0.0.0.0";

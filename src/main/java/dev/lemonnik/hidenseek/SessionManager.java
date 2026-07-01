@@ -33,9 +33,8 @@ public class SessionManager {
             .build();
 
     private static final int intermissionDuration = 90 * 20; // 1.5min
-    private static final int hidingDuration = 5 * 20; // 1min
-    private static final int gameDuration = 7 * 1 * 20; // 7min
-
+    private static final int hidingDuration = 60 * 20; // 1min
+    private static final int gameDuration = 7 * 60 * 20; // 7min
     private static int ticksPassed = 0;
 
     private static State state = State.IDLE;

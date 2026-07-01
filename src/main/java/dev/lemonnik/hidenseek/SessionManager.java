@@ -10,8 +10,6 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.entity.EntityAttackEvent;
-import net.minestom.server.potion.Potion;
-import net.minestom.server.potion.PotionEffect;
 import net.minestom.server.network.packet.server.play.TeamsPacket;
 import net.minestom.server.scoreboard.Team;
 import net.minestom.server.timer.Scheduler;
@@ -150,7 +148,7 @@ public class SessionManager {
     private static void addToSpectator(Player player) {
         spectators.add(player);
         player.setGameMode(GameMode.SPECTATOR);
-        player.addEffect(new Potion(PotionEffect.INVISIBILITY, 1, Integer.MAX_VALUE));
+        player.setInvisible(true);
     }
 
     public static void onPlayerLeave(Player player) {
@@ -230,9 +228,9 @@ public class SessionManager {
         teleportToWorld(MinecraftServer.getConnectionManager().getOnlinePlayers().stream().toList(), spawnWorld);
         hiders.clear();
         for (Player player : MinecraftServer.getConnectionManager().getOnlinePlayers()) {
-            player.clearEffects();
             player.setGameMode(GameMode.ADVENTURE);
             player.setGlowing(false);
+            player.setInvisible(false);
         }
         ticksPassed = 0;
         seekers.clear();

@@ -27,14 +27,14 @@ public class SessionManager {
     private static final Scheduler scheduler = MinecraftServer.getSchedulerManager();
     private static final BossBar BOSS_BAR = BossBar.bossBar(Component.text("Waiting for players: 2+"), 1, BossBar.Color.BLUE, BossBar.Overlay.PROGRESS);
 
-    private static final Team globalTeam = new TeamManager()
+    private static final Team globalTeam = MinecraftServer.getTeamManager()
             .createBuilder("hiddenNametags")
             .nameTagVisibility(TeamsPacket.NameTagVisibility.NEVER)
             .build();
 
     private static final int intermissionDuration = 90 * 20; // 1.5min
-    private static final int hidingDuration = 60 * 20; // 1min
-    private static final int gameDuration = 7 * 60 * 20; // 7min
+    private static final int hidingDuration = 5 * 20; // 1min
+    private static final int gameDuration = 7 * 1 * 20; // 7min
 
     private static int ticksPassed = 0;
 
@@ -130,13 +130,11 @@ public class SessionManager {
     private static void checkWin() {
         if (!hiders.isEmpty()) {
             showTitle(Title.title(Component.text("Hiders win!"), Component.empty()));
-            stopGame();
-            state = State.INTERMISSION;
         } else {
             showTitle(Title.title(Component.text("Seekers win!"), Component.empty()));
-            stopGame();
-            state = State.INTERMISSION;
         }
+        stopGame();
+        state = State.INTERMISSION;
     }
 
     public static void skipIntermission() {
@@ -175,6 +173,7 @@ public class SessionManager {
     }
 
     private static void initGame() {
+        Main.info("======================");
         currentWorld = WorldManager.getRandomWorld();
         Main.info("Selected map: " + currentWorld.id());
 
@@ -202,13 +201,14 @@ public class SessionManager {
         Main.info("Seekers: ");
         for (Player player : seekers) {
             Main.info("  - " + player.getUsername());
-            player.addEffect(new Potion(PotionEffect.GLOWING, 1, Integer.MAX_VALUE));
+            player.setGlowing(true);
         }
 
         teleportToWorld(hiders, currentWorld);
         for (Player player : players) {
             player.setTeam(globalTeam);
         }
+        Main.info("======================");
     }
 
     private static void teleportToWorld(List<Player> group, World world) {
@@ -231,6 +231,7 @@ public class SessionManager {
         for (Player player : MinecraftServer.getConnectionManager().getOnlinePlayers()) {
             player.clearEffects();
             player.setGameMode(GameMode.ADVENTURE);
+            player.setGlowing(false);
         }
         ticksPassed = 0;
         seekers.clear();

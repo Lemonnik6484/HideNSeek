@@ -67,6 +67,7 @@ public class SessionManager {
                 if (SessionManager.is(SessionManager.PlayerState.SEEKER, player) && SessionManager.is(SessionManager.PlayerState.HIDER, playerTarget)) {
                     hiders.remove(playerTarget);
                     addToSpectator(playerTarget);
+                    checkWin();
                 }
             }
         });
@@ -115,20 +116,26 @@ public class SessionManager {
                         setBossBarProgress((float) ticksPassed / gameDuration);
                         BOSS_BAR.color(BossBar.Color.RED);
                         if (ticksPassed >= gameDuration) {
-                            if (!hiders.isEmpty()) {
-                                showTitle(Title.title(Component.text("Hiders win!"), Component.empty()));
-                            } else {
-                                showTitle(Title.title(Component.text("Seekers win!"), Component.empty()));
-                            }
+                            checkWin();
                             state = State.INTERMISSION;
-                            ticksPassed = 0;
-                            stopGame();
                         }
                         break;
                 }
 
                 return TaskSchedule.tick(1);
             });
+        }
+    }
+
+    private static void checkWin() {
+        if (!hiders.isEmpty()) {
+            showTitle(Title.title(Component.text("Hiders win!"), Component.empty()));
+            stopGame();
+            state = State.INTERMISSION;
+        } else {
+            showTitle(Title.title(Component.text("Seekers win!"), Component.empty()));
+            stopGame();
+            state = State.INTERMISSION;
         }
     }
 
@@ -228,7 +235,6 @@ public class SessionManager {
         ticksPassed = 0;
         seekers.clear();
         spectators.clear();
-        state = State.IDLE;
     }
 
     private static boolean is(PlayerState state, Player player) {

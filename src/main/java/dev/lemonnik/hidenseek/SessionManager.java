@@ -3,13 +3,19 @@ package dev.lemonnik.hidenseek;
 import dev.lemonnik.hidenseek.utils.World;
 import dev.lemonnik.hidenseek.utils.WorldManager;
 import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.component.DataComponent;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.entity.EntityAttackEvent;
+import net.minestom.server.event.player.PlayerUseItemEvent;
+import net.minestom.server.item.ItemStack;
+import net.minestom.server.item.Material;
 import net.minestom.server.network.packet.server.play.TeamsPacket;
 import net.minestom.server.scoreboard.Team;
 import net.minestom.server.timer.Scheduler;
@@ -27,6 +33,14 @@ public class SessionManager {
     private static final Team globalTeam = MinecraftServer.getTeamManager()
             .createBuilder("hiddenNametags")
             .nameTagVisibility(TeamsPacket.NameTagVisibility.NEVER)
+            .build();
+
+    private static final ItemStack bell = ItemStack.builder(Material.BELL)
+            .customName(Component.text("Ring the bell"))
+            .build();
+
+    private static final ItemStack spawn = ItemStack.builder(Material.HEART_OF_THE_SEA)
+            .customName(Component.text("TP to spawn"))
             .build();
 
     private static final int intermissionDuration = 20 * 20; // 1.5min
@@ -54,6 +68,8 @@ public class SessionManager {
     public enum PlayerState {
         HIDER,
         SEEKER,
+
+
         SPECTATOR
     }
 
@@ -201,12 +217,14 @@ public class SessionManager {
         Main.info("Hiders: ");
         for (Player player : hiders) {
             Main.info("  - " + player.getUsername());
+            player.setItemInMainHand(bell);
         }
 
         Main.info("Seekers: ");
         for (Player player : seekers) {
             Main.info("  - " + player.getUsername());
             player.setGlowing(true);
+            player.setItemInMainHand(spawn);
         }
 
         teleportToWorld(hiders, currentWorld);
@@ -214,6 +232,37 @@ public class SessionManager {
             player.setTeam(globalTeam);
         }
         Main.info("======================");
+    }
+
+    public static void onItemUse(PlayerUseItemEvent event) {
+        Player player = event.getPlayer();
+        ItemStack stack = event.getItemStack();
+
+        if (stack.material() == Material.BELL) {
+            player.getInstance().playSound(
+                    Sound.sound(
+                            Key.key("block.bell.use"),
+                            Sound.Source.BLOCK,
+                            1f,
+                            1f
+                    ),
+                    player.getPosition().x(),
+                    player.getPosition().y(),
+                    player.getPosition().z()
+            );
+
+            event.setCancelled(true);
+        }
+
+        if (stack.material() == Material.HEART_OF_THE_SEA) {
+                        World world = WorldManager.getWorld(player.getInstance());
+            if (world != null) {
+                Pos pos = WorldManager.getWorldSpawn(world.id());
+                if (pos != null) player.teleport(pos);
+            }
+
+            event.setCancelled(true);
+        }
     }
 
     private static void teleportToWorld(List<Player> group, World world) {
@@ -237,6 +286,7 @@ public class SessionManager {
             player.setGameMode(GameMode.ADVENTURE);
             player.setGlowing(false);
             player.setInvisible(false);
+            player.getInventory().clear();
         }
         ticksPassed = 0;
         seekers.clear();

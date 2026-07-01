@@ -66,6 +66,8 @@ public class Main {
             }
         });
 
+        globalEventHandler.addListener(PlayerUseItemEvent.class, SessionManager::onItemUse);
+
         int port = System.getProperty("port") != null ? Integer.parseInt(System.getProperty("port")) : 25565;
         String address = System.getProperty("address") != null ? System.getProperty("address") : "0.0.0.0";
 

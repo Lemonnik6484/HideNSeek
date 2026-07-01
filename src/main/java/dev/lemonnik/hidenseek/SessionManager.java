@@ -161,7 +161,11 @@ public class SessionManager {
             if (task != null) {
                 task.cancel();
             }
-            state = State.IDLE;
+            if (MinecraftServer.getConnectionManager().getOnlinePlayerCount() < 2) {
+                state = State.IDLE;
+            } else {
+                state = State.INTERMISSION;
+            }
             BOSS_BAR.color(BossBar.Color.BLUE);
             BOSS_BAR.progress(1);
             BOSS_BAR.name(Component.text("Waiting for players: 2+"));

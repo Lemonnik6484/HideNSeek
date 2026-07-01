@@ -85,6 +85,9 @@ public class WorldManager {
 
             String id = fixId(file.getName());
 
+            instanceContainer.setTime(6000);
+            Objects.requireNonNull(instanceContainer.defaultClock()).pause();
+
             worlds.add(new World(id, instanceContainer));
             Main.info("Loaded world " + id);
         }

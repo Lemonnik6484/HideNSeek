@@ -29,9 +29,9 @@ public class SessionManager {
             .nameTagVisibility(TeamsPacket.NameTagVisibility.NEVER)
             .build();
 
-    private static final int intermissionDuration = 90 * 20; // 1.5min
-    private static final int hidingDuration = 60 * 20; // 1min
-    private static final int gameDuration = 7 * 60 * 20; // 7min
+    private static final int intermissionDuration = 20 * 20; // 1.5min
+    private static final int hidingDuration = 15 * 20; // 1min
+    private static final int gameDuration = 1 * 60 * 20; // 7min
     private static int ticksPassed = 0;
 
     private static State state = State.IDLE;
@@ -63,7 +63,9 @@ public class SessionManager {
                 if (SessionManager.is(SessionManager.PlayerState.SEEKER, player) && SessionManager.is(SessionManager.PlayerState.HIDER, playerTarget)) {
                     hiders.remove(playerTarget);
                     addToSpectator(playerTarget);
-                    checkWin();
+                    if (hiders.isEmpty()) {
+                        checkWin();
+                    }
                 }
             }
         });

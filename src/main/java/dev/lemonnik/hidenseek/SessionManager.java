@@ -154,6 +154,9 @@ public class SessionManager {
     }
 
     public static void onPlayerLeave(Player player) {
+        hiders.remove(player);
+        spectators.remove(player);
+        seekers.remove(player);
         if (MinecraftServer.getConnectionManager().getOnlinePlayerCount() < 2 || hiders.isEmpty() || seekers.isEmpty()) {
             if (task != null) {
                 task.cancel();

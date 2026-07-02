@@ -24,14 +24,11 @@ public class TeleportCommand extends Command {
 
             player.teleport(player.getPosition().withCoord(x, y, z));
             player.sendMessage("Teleported to %s %s %s".formatted(x, y, z));
+        }, xArgument, yArgument, zArgument);
+
+        setDefaultExecutor((sender, context) -> {
+            if (!(sender instanceof Player player)) return;
+            player.sendMessage("You are a MORON!!!!!!!!!");
         });
     }
-
-    @Override
-    public void setDefaultExecutor(@Nullable CommandExecutor sender) {
-        if (!(sender instanceof Player player)) return;
-        player.sendMessage("You are a MORON!!!!!!!!!");
-    }
-
-
 }

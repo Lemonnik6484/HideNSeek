@@ -73,6 +73,29 @@ public class SessionManager {
         MinecraftServer.getGlobalEventHandler().addListener(EntityAttackEvent.class, event -> {
             if (event.getEntity() instanceof Player player && event.getTarget() instanceof Player playerTarget) {
                 if (is(PlayerState.SEEKER, player) && is(PlayerState.HIDER, playerTarget)) {
+                    player.getInstance().playSound(
+                            Sound.sound(
+                                    Key.key("entity.player.levelup"),
+                                    Sound.Source.PLAYER,
+                                    1f,
+                                    1f
+                            ),
+                            player.getPosition().x(),
+                            player.getPosition().y(),
+                            player.getPosition().z()
+                    );
+
+                    player.getInstance().playSound(
+                            Sound.sound(
+                                    Key.key("entity.player.attack.crit"),
+                                    Sound.Source.PLAYER,
+                                    1f,
+                                    1f
+                            ),
+                            player.getPosition().x(),
+                            player.getPosition().y(),
+                            player.getPosition().z()
+                    );
                     hiders.remove(playerTarget);
                     addToSpectator(playerTarget);
                     if (hiders.isEmpty()) {

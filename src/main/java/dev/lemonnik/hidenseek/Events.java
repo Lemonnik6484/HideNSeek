@@ -12,6 +12,7 @@ import net.minestom.server.event.inventory.InventoryPreClickEvent;
 import net.minestom.server.event.player.*;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockFace;
+import net.minestom.server.listener.PlayerSpectatorListener;
 
 public class Events {
     private static final GlobalEventHandler globalEventHandler = MinecraftServer.getGlobalEventHandler();
@@ -48,6 +49,12 @@ public class Events {
         globalEventHandler.addListener(InventoryPreClickEvent.class, event -> event.setCancelled(true));
         globalEventHandler.addListener(PlayerSwapItemEvent.class, event -> event.setCancelled(true));
         globalEventHandler.addListener(PlayerBlockInteractEvent.class, Events::onBlockInteract);
+        globalEventHandler.addListener(PlayerTeleportToEntityEvent.class, Events::onSpectatorTeleport);
+    }
+
+    private static void onSpectatorTeleport(PlayerTeleportToEntityEvent event) {
+        if (event.getPlayer().getGameMode() != GameMode.SPECTATOR) return;
+        event.getPlayer().teleport(event.getTarget().getPosition());
     }
 
     private static void onBlockInteract(PlayerBlockInteractEvent event) {

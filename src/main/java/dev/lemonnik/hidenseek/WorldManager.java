@@ -4,28 +4,20 @@ import dev.lemonnik.hidenseek.sql.QueryBuilder;
 import dev.lemonnik.hidenseek.sql.SQLManager;
 import dev.lemonnik.hidenseek.utils.BadPractices;
 import dev.lemonnik.hidenseek.utils.World;
-import io.github.bloepiloepi.basicredstone.redstone.PowerNet;
-import io.github.bloepiloepi.basicredstone.redstone.Redstone;
-import net.hollowcube.polar.AnvilPolar;
-import net.hollowcube.polar.PolarLoader;
-import net.hollowcube.polar.PolarWriter;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
-import net.minestom.server.instance.LightingChunk;
 import net.minestom.server.instance.anvil.AnvilLoader;
 import net.minestom.server.world.DimensionType;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.ResultSet;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class WorldManager {

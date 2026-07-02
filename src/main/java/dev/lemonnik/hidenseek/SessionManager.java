@@ -37,7 +37,7 @@ public class SessionManager {
             .nameTagVisibility(TeamsPacket.NameTagVisibility.NEVER)
             .build();
 
-    private static final int SEEKER_COUNT = 1;
+    private static final float SEEKER_RATIO = 0.10F;
     private static final int INTERMISSION_DURATION = 20 * 20; // 20sec
     private static final int HIDING_DURATION = 60 * 20; // 1min
     private static final int GAME_DURATION = 7 * 60 * 20; // 7min
@@ -160,7 +160,8 @@ public class SessionManager {
             }
         }
 
-        for (int i = 0; i < SEEKER_COUNT; i++) {
+        int seekerCount = getSeekerCount(onlinePlayers.size());
+        for (int i = 0; i < seekerCount; i++) {
             Player seeker = weightedPool.get(ThreadLocalRandom.current().nextInt(weightedPool.size()));
             weightedPool.remove(seeker);
 
@@ -377,5 +378,9 @@ public class SessionManager {
         return ItemStack.builder(material)
                 .customName(Component.text(name))
                 .build();
+    }
+
+    private static int getSeekerCount(int playerCount) {
+        return Math.max(1, (int) Math.ceil(playerCount * SEEKER_RATIO));
     }
 }

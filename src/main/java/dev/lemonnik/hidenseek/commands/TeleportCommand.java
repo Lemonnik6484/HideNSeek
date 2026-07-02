@@ -1,11 +1,9 @@
 package dev.lemonnik.hidenseek.commands;
 
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandExecutor;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.command.builder.arguments.number.ArgumentDouble;
-import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import org.jetbrains.annotations.Nullable;
 

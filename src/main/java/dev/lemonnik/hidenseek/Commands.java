@@ -16,6 +16,7 @@ public class Commands {
         commands.add(new WorldCommand());
         commands.add(new SetSpawnCommand());
         commands.add(new StartCommand());
+        commands.add(new TeleportCommand());
     }
 
     public static void registerCommands() {

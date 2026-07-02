@@ -31,7 +31,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class SessionManager {
     private static final Scheduler SCHEDULER = MinecraftServer.getSchedulerManager();
-    private static final BossBar BOSS_BAR = BossBar.bossBar(Component.text("It's broken if you see this"), 0, BossBar.Color.PINK, BossBar.Overlay.NOTCHED_20);
+    private static final BossBar BOSS_BAR = BossBar.bossBar(Component.text("Waiting for players: 2+"), 1, BossBar.Color.BLUE, BossBar.Overlay.PROGRESS);
     private static final Team GLOBAL_TEAM = MinecraftServer.getTeamManager()
             .createBuilder("hiddenNametags")
             .nameTagVisibility(TeamsPacket.NameTagVisibility.NEVER)
@@ -253,7 +253,7 @@ public class SessionManager {
         }
     }
 
-    private static void teleportToWorld(Player player, World world) {
+    public static void teleportToWorld(Player player, World world) {
         player.setInstance(world.world()).thenRun(() -> {
             Pos pos = WorldManager.getWorldSpawn(world.id());
             if (pos != null) player.teleport(pos);

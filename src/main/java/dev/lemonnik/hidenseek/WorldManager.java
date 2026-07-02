@@ -4,6 +4,8 @@ import dev.lemonnik.hidenseek.sql.QueryBuilder;
 import dev.lemonnik.hidenseek.sql.SQLManager;
 import dev.lemonnik.hidenseek.utils.BadPractices;
 import dev.lemonnik.hidenseek.utils.World;
+import io.github.bloepiloepi.basicredstone.redstone.PowerNet;
+import io.github.bloepiloepi.basicredstone.redstone.Redstone;
 import net.hollowcube.polar.AnvilPolar;
 import net.hollowcube.polar.PolarLoader;
 import net.hollowcube.polar.PolarWriter;
@@ -52,26 +54,26 @@ public class WorldManager {
 
             switch (type) {
                 case ANVIL: {
-                    try {
+                    /*try {
                         var polarWorld = AnvilPolar.anvilToPolar(path);
                         var polarWorldBytes = PolarWriter.write(polarWorld);
 
                         Files.write(Path.of("worlds/" + file.getName() + ".polar"), polarWorldBytes);
                         type = WorldType.POLAR;
                     } catch (IOException e) {
-                        Main.warn(String.format("Failed to convert %s to .polar. Reason: %s. Falling back to Anvil!", file.getName(), e.getMessage()));
+                        Main.warn(String.format("Failed to convert %s to .polar. Reason: %s. Falling back to Anvil!", file.getName(), e.getMessage()));*/
                         instanceContainer.setChunkLoader(new AnvilLoader(path, DimensionType.OVERWORLD.key()));
                         break;
-                    }
+                    //}
                 }
                 case POLAR: {
-                    try {
-                        instanceContainer.setChunkLoader(new PolarLoader(path));
+                    /*try {
+                        instanceContainer.setChunkLoader(new PolarLoader(Path.of(path + ".polar")));
                     } catch (IOException e) {
                         Main.error(String.format("Failed to load world %s. Reason: %s", file.getName(), e.getMessage()));
                         throw new RuntimeException(e);
                     }
-                    break;
+                    break;*/
                 }
                 case null:
                     break;

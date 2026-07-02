@@ -31,7 +31,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class SessionManager {
     private static final Scheduler SCHEDULER = MinecraftServer.getSchedulerManager();
-    private static final BossBar BOSS_BAR = BossBar.bossBar(Component.text("Waiting for players: 2+"), 1, BossBar.Color.BLUE, BossBar.Overlay.PROGRESS);
+    private static final BossBar BOSS_BAR = BossBar.bossBar(Component.text("It's broken if you see this"), 0, BossBar.Color.PINK, BossBar.Overlay.NOTCHED_20);
     private static final Team GLOBAL_TEAM = MinecraftServer.getTeamManager()
             .createBuilder("hiddenNametags")
             .nameTagVisibility(TeamsPacket.NameTagVisibility.NEVER)

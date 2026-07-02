@@ -227,7 +227,7 @@ public class SessionManager {
 
                 player.getInventory().setItemStack(8, stack.withAmount(stack2.amount() - 1));
 
-                return stack2.amount() >= 1 ? TaskSchedule.seconds(1) : TaskSchedule.stop();
+                return stack2.amount() > 1 ? TaskSchedule.seconds(1) : TaskSchedule.stop();
             });
 
             event.setCancelled(true);

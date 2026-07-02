@@ -16,7 +16,7 @@ public class TeleportCommand extends Command {
         ArgumentDouble zArgument = ArgumentType.Double("z");
 
         addSyntax((sender, ctx) -> {
-            if (!(sender instanceof Player player)) return;
+            if (!(sender instanceof Player player) || (player.getPermissionLevel() < 3)) return;
 
             double x = ctx.get(xArgument);
             double y = ctx.get(yArgument);

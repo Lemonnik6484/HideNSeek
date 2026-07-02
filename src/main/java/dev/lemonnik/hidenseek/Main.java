@@ -2,17 +2,10 @@ package dev.lemonnik.hidenseek;
 
 import dev.lemonnik.hidenseek.sql.SQLManager;
 import dev.lemonnik.hidenseek.utils.BadPractices;
-import dev.lemonnik.hidenseek.utils.PermsList;
-import dev.lemonnik.hidenseek.utils.World;
-import dev.lemonnik.hidenseek.utils.WorldManager;
+import net.kyori.adventure.text.Component;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.coordinate.Pos;
-import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.GlobalEventHandler;
-import net.minestom.server.event.inventory.InventoryPreClickEvent;
-import net.minestom.server.event.player.*;
 import net.minestom.server.extras.lan.OpenToLAN;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,63 +14,21 @@ import java.util.Scanner;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger("Server");
+    private static final int DEFAULT_PORT = 25565;
+    private static final String DEFAULT_ADDRESS = "0.0.0.0";
 
     static void main(String[] args) {
         BadPractices.yum(SQLManager::init);
 
         MinecraftServer minecraftServer = MinecraftServer.init(new Auth.Online());
-
         Commands.registerCommands();
-
         OpenToLAN.open();
-
-        WorldManager.loadWorlds();
-
+        WorldManager.load();
         SessionManager.init();
+        Events.register();
 
-        World spawnWorld = WorldManager.getSpawnWorld();
-        Pos spawnPos = WorldManager.getWorldSpawn(spawnWorld.id());
-        if (spawnPos == null) {
-            spawnPos = Pos.ZERO;
-        }
-
-        GlobalEventHandler globalEventHandler = MinecraftServer.getGlobalEventHandler();
-        globalEventHandler.addListener(PlayerGameModeRequestEvent.class, event -> {
-            final Player player = event.getPlayer();
-            if (player.getPermissionLevel() >= 3) {
-                player.setGameMode(event.getRequestedGameMode());
-            }
-        });
-
-        // game logic
-        Pos finalSpawnPos = spawnPos;
-        globalEventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
-            Player player = event.getPlayer();
-            event.setSpawningInstance(spawnWorld.world());
-            player.setRespawnPoint(finalSpawnPos);
-            player.setGameMode(GameMode.ADVENTURE);
-            player.setPermissionLevel(PermsList.getLevel(player.getUuid()));
-        });
-
-        globalEventHandler.addListener(PlayerLoadedEvent.class, event -> {
-            final Player player = event.getPlayer();
-            SessionManager.onPlayerJoin(player);
-        });
-
-        globalEventHandler.addListener(PlayerDisconnectEvent.class, event -> {
-           SessionManager.onPlayerLeave(event.getPlayer());
-        });
-
-        globalEventHandler.addListener(PlayerUseItemEvent.class, SessionManager::onItemUse);
-
-        // stop item interactions
-        globalEventHandler.addListener(InventoryPreClickEvent.class, event -> event.setCancelled(true));
-        globalEventHandler.addListener(PlayerSwapItemEvent.class, event -> event.setCancelled(true));
-
-        // -------
-
-        int port = System.getProperty("port") != null ? Integer.parseInt(System.getProperty("port")) : 25565;
-        String address = System.getProperty("address") != null ? System.getProperty("address") : "0.0.0.0";
+        int port = getIntProperty("port", DEFAULT_PORT);
+        String address = getStringProperty("address", DEFAULT_ADDRESS);
 
         minecraftServer.start(address, port);
         info("Server started on " + address + ":" + port);
@@ -94,6 +45,22 @@ public class Main {
 
         consoleThread.setDaemon(true);
         consoleThread.start();
+    }
+
+    private static int getIntProperty(String key, int defaultValue) {
+        String value = System.getProperty(key);
+        return value != null ? Integer.parseInt(value) : defaultValue;
+    }
+
+    private static String getStringProperty(String key, String defaultValue) {
+        String value = System.getProperty(key);
+        return value != null ? value : defaultValue;
+    }
+
+    public static void announce(Component component) {
+        for (Player player : MinecraftServer.getConnectionManager().getOnlinePlayers()) {
+            player.sendMessage(component);
+        }
     }
 
     public static void info(String message) {

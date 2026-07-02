@@ -1,11 +1,10 @@
 package dev.lemonnik.hidenseek.commands;
 
 import dev.lemonnik.hidenseek.utils.World;
-import dev.lemonnik.hidenseek.utils.WorldManager;
+import dev.lemonnik.hidenseek.WorldManager;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.entity.Player;
-import net.minestom.server.instance.InstanceContainer;
 
 public class WorldCommand extends Command {
     public WorldCommand() {

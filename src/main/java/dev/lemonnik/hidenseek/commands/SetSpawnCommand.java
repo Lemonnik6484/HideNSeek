@@ -1,7 +1,7 @@
 package dev.lemonnik.hidenseek.commands;
 
 import dev.lemonnik.hidenseek.utils.World;
-import dev.lemonnik.hidenseek.utils.WorldManager;
+import dev.lemonnik.hidenseek.WorldManager;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;

@@ -1,14 +1,14 @@
-package dev.lemonnik.hidenseek.utils;
+package dev.lemonnik.hidenseek;
 
-import dev.lemonnik.hidenseek.Main;
 import dev.lemonnik.hidenseek.sql.QueryBuilder;
 import dev.lemonnik.hidenseek.sql.SQLManager;
+import dev.lemonnik.hidenseek.utils.BadPractices;
+import dev.lemonnik.hidenseek.utils.World;
 import net.hollowcube.polar.AnvilPolar;
 import net.hollowcube.polar.PolarLoader;
 import net.hollowcube.polar.PolarWriter;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
-import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
@@ -30,12 +30,12 @@ public class WorldManager {
     private static final ArrayList<World> worlds = new ArrayList<>();
     private static final String spawnWorldId = System.getProperty("lobby") != null ? System.getProperty("lobby") : "lobby";
 
-    public static enum WorldType {
+    public enum WorldType {
         ANVIL,
         POLAR
     }
 
-    public static void loadWorlds() {
+    public static void load() {
         InstanceManager instanceManager = MinecraftServer.getInstanceManager();
         WorldType type = null;
 
@@ -77,11 +77,6 @@ public class WorldManager {
                     break;
 
             }
-
-            CompletableFuture.runAsync(() -> {
-                LightingChunk.relight(instanceContainer, instanceContainer.getChunks());
-                instanceContainer.saveChunksToStorage();
-            });
 
             String id = fixId(file.getName());
 

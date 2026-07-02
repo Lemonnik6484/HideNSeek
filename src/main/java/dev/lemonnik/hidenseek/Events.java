@@ -51,6 +51,8 @@ public class Events {
     }
 
     private static void onBlockInteract(PlayerBlockInteractEvent event) {
+        if (event.getPlayer().getGameMode() == GameMode.SPECTATOR) return;
+
         Block block = event.getBlock();
         if (!isDoorOrTrapdoor(block)) {
             return;
